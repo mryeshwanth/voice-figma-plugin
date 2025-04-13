@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voice Transcription</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      color: #333;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    button {
+      display: block;
+      margin: 20px auto;
+      padding: 12px 24px;
+      font-size: 16px;
+      border: none;
+      border-radius: 6px;
+      background-color: #18A0FB;
+      color: white;
+      cursor: pointer;
+    }
+    .message-box {
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    .warning {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+    }
+    .info {
+      background-color: #e8f4fd;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+    .supported-browsers table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .supported-browsers th, .supported-browsers td {
+      border: 1px solid #ddd;
+      padding: 6px 10px;
+      text-align: left;
+    }
+    .supported-browsers th {
+      background-color: #f9f9f9;
+    }
+
+    #recording-indicator {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      margin-top: 10px;
+      font-size: 14px;
+      color: #c00;
+      font-weight: 300;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      background: red;
+      border-radius: 50%;
+      margin-right: 8px;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Voice to Text</h1>
+    <p>Click "Record" to begin speaking. Your text will appear below.</p>
+  </header>
+
+  <!-- Microphone instructions -->
+  <div id="mic-warning" class="message-box info" style="display:none;">
+    <h3>Microphone Access Required</h3>
+    <ul>
+      <li><strong>Windows:</strong> Settings → Privacy → Microphone → Allow access</li>
+      <li><strong>Mac:</strong> System Settings → Privacy & Security → Microphone → Enable for your browser</li>
+      <li><strong>Chrome/Edge:</strong> Click lock icon → Site Settings → Allow Microphone</li>
+      <li><strong>Safari:</strong> Preferences → Websites → Microphone → Allow</li>
+    </ul>
+    <p>After allowing access, refresh this page.</p>
+  </div>
+
+  <!-- Incompatible browser warning -->
+  <div id="browser-warning" class="message-box warning" style="display:none;"></div>
+
+  <!-- Recording indicator -->
+  <div id="recording-indicator">
+    <div class="dot"></div>
+    <span>Recording...</span>
+  </div>
+
+  <button id="action-btn" style="display: none;">Record</button>
+  <textarea id="transcription" placeholder="Your transcription will appear here..." style="display: none;"></textarea>
+
+  <script>
+    const actionBtn = document.getElementById('action-btn');
+    const transcriptionBox = document.getElementById('transcription');
+    const micWarning = document.getElementById('mic-warning');
+    const browserWarning = document.getElementById('browser-warning');
+    const indicator = document.getElementById('recording-indicator');
+    const session = new URLSearchParams(window.location.search).get('session');
+
+    let recognition;
+    let isRecording = false;
+    let isFinished = false;
+    let finalTranscript = '', interimTranscript = '';
+
+    const browserInfo = (() => {
+      const ua = navigator.userAgent;
+      if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua) && !/brave/i.test(ua) && !/arc/i.test(ua)) {
+        return { name: "Google Chrome", supported: true };
+      } else if (/edg/i.test(ua)) {
+        return { name: "Microsoft Edge", supported: false };
+      } else if (/safari/i.test(ua) && !/chrome|chromium/i.test(ua)) {
+        return { name: "Safari", supported: true };
+      } else if (/firefox/i.test(ua)) {
+        return { name: "Firefox", supported: false };
+      } else if (/opr/i.test(ua)) {
+        return { name: "Opera", supported: true };
+      } else if (/samsungbrowser/i.test(ua)) {
+        return { name: "Samsung Internet", supported: true };
+      } else if (/brave/i.test(ua)) {
+        return { name: "Brave", supported: false };
+      } else if (/arc/i.test(ua)) {
+        return { name: "Arc", supported: false };
+      } else {
+        return { name: "Unknown", supported: false };
+      }
+    })();
+
+    const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+
+    if (!isSpeechSupported || !browserInfo.supported) {
+      browserWarning.style.display = 'block';
+      browserWarning.innerHTML = `
+        <h3>Browser Compatibility Issue</h3>
+        <p>Your browser <strong>${browserInfo.name}</strong> does not support speech recognition.</p>
+        <p>Try using <strong>Google Chrome</strong> or <strong>Safari</strong> instead.</p>
+      `;
+    } else {
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+        micWarning.style.display = 'none';
+        actionBtn.style.display = 'block';
+        transcriptionBox.style.display = 'block';
+
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        recognition = new SpeechRecognition();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        recognition.onstart = () => {
+          isRecording = true;
+          indicator.style.display = 'flex';
+          actionBtn.textContent = 'Stop';
+        };
+
+        recognition.onresult = (event) => {
+          interimTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const transcript = event.results[i][0].transcript;
+            event.results[i].isFinal ? finalTranscript += transcript + ' ' : interimTranscript += transcript;
+          }
+          transcriptionBox.value = finalTranscript + interimTranscript;
+        };
+
+        recognition.onend = () => {
+          isRecording = false;
+          isFinished = true;
+          indicator.style.display = 'none';
+          actionBtn.textContent = 'Send to Figma';
+        };
+
+        recognition.onerror = (event) => {
+          console.error('Speech error:', event.error);
+          indicator.style.display = 'none';
+          actionBtn.textContent = 'Record';
+        };
+
+        actionBtn.onclick = async () => {
+          if (isFinished) {
+            const text = transcriptionBox.value.trim();
+            if (!text || !session) return;
+
+            actionBtn.disabled = true;
+
+            try {
+              const res = await fetch('/api/save-transcription', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sessionToken: session, text })
+              });
+
+              if (res.ok) {
+                window.location.href = 'figma://';
+              } else {
+                alert('Failed to send transcription');
+                actionBtn.disabled = false;
+              }
+            } catch (err) {
+              console.error(err);
+              alert('Error sending transcription');
+              actionBtn.disabled = false;
+            }
+          } else if (!isRecording) {
+            finalTranscript = '';
+            interimTranscript = '';
+            transcriptionBox.value = '';
+            recognition.start();
+          } else {
+            recognition.stop();
+          }
+        };
+      }).catch(() => {
+        micWarning.style.display = 'block';
+        actionBtn.style.display = 'none';
+        transcriptionBox.style.display = 'none';
+      });
+    }
+  </script>
+</body>
+</html>

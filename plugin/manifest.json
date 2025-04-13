@@ -1,0 +1,15 @@
+{
+  "name": "Voice to Text for Figma",
+  "id": "voice-to-text-transcription",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "popup.html",
+  "editorType": ["figma"],
+  "permissions": [],
+  "menu": [
+    {
+      "name": "Transcribe Voice Input",
+      "command": "start"
+    }
+  ]
+}

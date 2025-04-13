@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Voice to Text</title>
+  <style>
+    body {
+      font-family: Inter, sans-serif;
+      margin: 0;
+      padding: 24px;
+      max-width: 600px;
+      margin: auto;
+      color: #333;
+    }
+
+    h2 {
+      font-size: 20px;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+
+    p {
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .view {
+      display: none;
+      transition: all 0.3s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    .button-group {
+      display: flex;
+      justify-content: center;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 14px;
+      border: none;
+      border-radius: 6px;
+      background-color: #18A0FB;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      max-width: 240px;
+    }
+
+    button.secondary {
+      background-color: #ccc;
+      color: #333;
+    }
+
+    .status {
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- Step 1: Mode Selection -->
+  <div id="view-mode" class="view">
+    <h2>How would you like to add transcription (voice-to-text)?</h2>
+    <div class="button-group">
+      <button id="btn-insert-new">Insert New Text</button>
+      <button id="btn-select-existing">Select Existing Text</button>
+    </div>
+  </div>
+
+  <!-- Step 2: Text Layer Validation -->
+  <div id="view-check-selection" class="view">
+    <h2>Select a Text Layer</h2>
+    <p>Please select a text layer in your Figma document.</p>
+    <div class="button-group">
+      <button id="btn-retry-selection">Retry</button>
+    </div>
+  </div>
+
+  <!-- Step 3: Open Tool -->
+  <div id="view-open-tool" class="view">
+    <h2>Start Transcription</h2>
+    <p>This will open a new browser window.</p>
+    <div class="button-group">
+      <button id="btn-open-tool">Open Transcription Tool</button>
+      <button id="btn-back-tool" class="secondary">← Back</button>
+    </div>
+  </div>
+
+  <!-- Step 4: Waiting View -->
+  <div id="view-waiting" class="view">
+    <h2>Listening for Transcription</h2>
+    <p class="status" id="status-message">Waiting for transcription...</p>
+    <div class="button-group">
+      <button id="btn-check-now" class="primary">Check Now</button>
+      <button id="btn-cancel" class="secondary">Cancel</button>
+    </div>
+  </div>
+
+  <!-- Step 5: Success -->
+  <div id="view-success" class="view">
+    <h2>Success!</h2>
+    <p>Text has been added to Figma.</p>
+    <div class="button-group">
+      <button id="btn-new-transcription">Start Again</button>
+    </div>
+  </div>
+
+  <script>
+    const views = {
+      mode: document.getElementById('view-mode'),
+      check: document.getElementById('view-check-selection'),
+      tool: document.getElementById('view-open-tool'),
+      wait: document.getElementById('view-waiting'),
+      success: document.getElementById('view-success'),
+    };
+
+    const statusMessage = document.getElementById('status-message');
+    let sessionToken = null;
+    let mode = null;
+    let pollingInterval = null;
+    
+    function showView(viewKey) {
+      Object.values(views).forEach(view => view.classList.remove('active'));
+      views[viewKey].classList.add('active');
+      
+      // Start polling when entering wait view, stop polling otherwise
+      if (viewKey === 'wait') {
+        startPolling();
+      } else {
+        stopPolling();
+      }
+    }
+
+    function generateSessionToken() {
+      return Date.now().toString(36) + Math.random().toString(36).substring(2);
+    }
+    
+    function startPolling() {
+      // Clear any existing interval first to avoid multiple intervals
+      stopPolling();
+      
+      // Start new polling interval
+      pollingInterval = setInterval(() => {
+        parent.postMessage({ pluginMessage: { type: 'check-for-transcription' } }, '*');
+        statusMessage.textContent = 'Checking for transcription... Give me few seconds';
+      }, 2000); // Check every 2 seconds
+    }
+    
+    function stopPolling() {
+      if (pollingInterval) {
+        clearInterval(pollingInterval);
+        pollingInterval = null;
+      }
+    }
+
+    // Button Events
+    document.getElementById('btn-insert-new').onclick = () => {
+      mode = 'new';
+      sessionToken = generateSessionToken();
+      parent.postMessage({ pluginMessage: { type: 'mode-new', session: sessionToken } }, '*');
+      showView('tool');
+    };
+
+    document.getElementById('btn-select-existing').onclick = () => {
+      mode = 'existing';
+      sessionToken = generateSessionToken();
+      parent.postMessage({ pluginMessage: { type: 'check-selection', session: sessionToken } }, '*');
+    };
+
+    document.getElementById('btn-retry-selection').onclick = () => {
+      parent.postMessage({ pluginMessage: { type: 'check-selection', session: sessionToken } }, '*');
+    };
+
+    document.getElementById('btn-open-tool').onclick = () => {
+      showView('wait');
+      parent.postMessage({ pluginMessage: { type: 'open-transcription-tool', session: sessionToken } }, '*');
+    };
+
+    document.getElementById('btn-check-now').onclick = () => {
+      statusMessage.textContent = 'Checking for transcription...';
+      parent.postMessage({ pluginMessage: { type: 'check-for-transcription' } }, '*');
+    };
+
+    document.getElementById('btn-cancel').onclick = () => {
+      showView('tool');
+    };
+
+    document.getElementById('btn-back-tool').onclick = () => {
+      showView('mode');
+    };
+
+    document.getElementById('btn-new-transcription').onclick = () => {
+      showView('mode');
+    };
+
+    // Listen for plugin messages
+    window.onmessage = (event) => {
+      const msg = event.data.pluginMessage;
+      if (!msg || !msg.type) return;
+
+      switch (msg.type) {
+        case 'selection-valid':
+          showView('tool');
+          break;
+        case 'selection-invalid':
+          showView('check');
+          break;
+        case 'opening-browser':
+          statusMessage.textContent = 'Browser opened. Please start speaking...';
+          break;
+        case 'transcription-received':
+          stopPolling(); // Ensure polling stops when transcription is received
+          showView('success');
+          break;
+        case 'transcription-check-error':
+          statusMessage.textContent = 'Error checking for transcription.';
+          break;
+        case 'no-transcription-found':
+          statusMessage.textContent = 'No transcription found yet. Checking again soon...';
+          break;
+        case 'text-insertion-error':
+          statusMessage.textContent = 'Error inserting text.';
+          break;
+      }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      showView('mode');
+    });
+    
+    // Clean up interval on page unload/close to prevent memory leaks
+    window.addEventListener('beforeunload', () => {
+      stopPolling();
+    });
+  </script>
+</body>
+</html>
