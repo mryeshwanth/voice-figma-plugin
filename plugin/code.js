@@ -25,7 +25,7 @@ figma.ui.onmessage = async (msg) => {
 
   if (msg.type === 'open-transcription-tool') {
     figma.ui.postMessage({ type: 'opening-browser' });
-    await figma.openExternal(`http://localhost:8080/web/transcription.html?session=${msg.session}`);
+    await figma.openExternal(`https://voice-figma-plugin-production.up.railway.app/web/transcription.html?session=${sessionToken}`);
   }
 
   if (msg.type === 'check-for-transcription') {
@@ -38,7 +38,7 @@ figma.ui.onmessage = async (msg) => {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/get-transcription?session=${sessionData.token}`);
+      const response = await fetch(`https://voice-figma-plugin-production.up.railway.app/web/transcription.html?session=${sessionToken}`);
       if (!response.ok) return;
 
       const data = await response.json();
