@@ -23,7 +23,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve static files from web folder
-app.use('/web', express.static(path.join(__dirname, '..', 'web')));
+// Correct for root-level server.js and /web folder
+app.use('/web', express.static(path.join(__dirname, 'web')));
+
 
 // Save transcription endpoint
 app.post('/api/save-transcription', (req, res) => {

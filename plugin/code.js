@@ -10,6 +10,16 @@ function checkSelection() {
   }
 }
 
+
+// Set this to true if you want to test locally
+const isDev = false;
+
+const BASE_URL = isDev
+  ? 'http://localhost:8080'
+  : 'https://voice-figma-plugin-production.up.railway.app';
+
+
+
 // Handle Messages from UI
 figma.ui.onmessage = async (msg) => {
   if (msg.type === 'mode-new') {
@@ -25,7 +35,7 @@ figma.ui.onmessage = async (msg) => {
 
   if (msg.type === 'open-transcription-tool') {
     figma.ui.postMessage({ type: 'opening-browser' });
-    await figma.openExternal(`https://voice-figma-plugin-production.up.railway.app/web/transcription.html?session=${sessionToken}`);
+    await figma.openExternal(`${BASE_URL}/web/transcription.html?session=${sessionToken}`);
   }
 
   if (msg.type === 'check-for-transcription') {
@@ -38,7 +48,7 @@ figma.ui.onmessage = async (msg) => {
         return;
       }
 
-      const response = await fetch(`https://voice-figma-plugin-production.up.railway.app/web/transcription.html?session=${sessionToken}`);
+      const response = await fetch(`${BASE_URL}/web/transcription.html?session=${sessionToken}`);
       if (!response.ok) return;
 
       const data = await response.json();
