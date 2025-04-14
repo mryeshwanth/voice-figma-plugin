@@ -108,7 +108,7 @@ setInterval(() => {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log(`🌐 Web interface: http://localhost:${PORT}/web/transcription.html`);
-  console.log(`💓 Health check: http://localhost:${PORT}/health`);
+  console.log(`✅ Server is running on: http://localhost:${PORT}`);
+  console.log(`🌍 Live App URL: https://voice-figma-plugin-production.up.railway.app`);
 });
+
