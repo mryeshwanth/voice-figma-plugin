@@ -51,7 +51,6 @@
       color: #0c5460;
       border: 1px solid #bee5eb;
     }
-
     #recording-indicator {
       display: none;
       justify-content: center;
@@ -59,9 +58,7 @@
       margin-top: 10px;
       font-size: 14px;
       color: #c00;
-      font-weight: 300;
     }
-
     .dot {
       width: 10px;
       height: 10px;
@@ -70,13 +67,11 @@
       margin-right: 8px;
       animation: pulse 1.5s infinite;
     }
-
     @keyframes pulse {
       0% { opacity: 1; }
       50% { opacity: 0.4; }
       100% { opacity: 1; }
     }
-
     #timer {
       text-align: center;
       font-size: 14px;
@@ -91,7 +86,6 @@
     <p>Click "Record" to begin speaking. Your text will appear below.</p>
   </header>
 
-  <!-- Mic Instructions -->
   <div id="mic-warning" class="message-box info" style="display:none;">
     <h3>Microphone Access Required</h3>
     <ul>
@@ -104,13 +98,15 @@
   </div>
 
   <div id="browser-warning" class="message-box warning" style="display:none;"></div>
+  <div id="limit-warning" class="message-box warning" style="display: none;">
+    You're approaching the 60-second limit. Recording will stop soon.
+  </div>
 
   <div id="recording-indicator">
     <div class="dot"></div>
     <span>Recording...</span>
   </div>
-
-  <div id="timer"></div>
+  <div id="timer">0:00</div>
 
   <button id="action-btn" style="display: none;">Record</button>
   <textarea id="transcription" placeholder="Your transcription will appear here..." style="display: none;"></textarea>
@@ -121,6 +117,7 @@
     const micWarning = document.getElementById('mic-warning');
     const browserWarning = document.getElementById('browser-warning');
     const indicator = document.getElementById('recording-indicator');
+    const limitWarning = document.getElementById('limit-warning');
     const timerEl = document.getElementById('timer');
     const session = new URLSearchParams(window.location.search).get('session');
 
@@ -128,58 +125,56 @@
     let isRecording = false;
     let isFinished = false;
     let finalTranscript = '', interimTranscript = '';
-    let timerInterval, totalSeconds = 0;
+    let autoRestart = true;
+    let timerInterval = null;
+    let totalSeconds = 0;
+    const MAX_SECONDS = 60;
 
-    const MAX_RECORDING_SECONDS = 120;
-
-    const browserInfo = (() => {
-      const ua = navigator.userAgent;
-      if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua) && !/brave/i.test(ua) && !/arc/i.test(ua)) {
-        return { name: "Google Chrome", supported: true };
-      } else if (/edg/i.test(ua)) {
-        return { name: "Microsoft Edge", supported: false };
-      } else if (/safari/i.test(ua) && !/chrome|chromium/i.test(ua)) {
-        return { name: "Safari", supported: true };
-      } else if (/firefox/i.test(ua)) {
-        return { name: "Firefox", supported: false };
-      } else if (/opr/i.test(ua)) {
-        return { name: "Opera", supported: true };
-      } else if (/samsungbrowser/i.test(ua)) {
-        return { name: "Samsung Internet", supported: true };
-      } else if (/brave/i.test(ua)) {
-        return { name: "Brave", supported: false };
-      } else if (/arc/i.test(ua)) {
-        return { name: "Arc", supported: false };
-      } else {
-        return { name: "Unknown", supported: false };
-      }
-    })();
-
-    const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
-
-    function formatTime(s) {
-      const mins = Math.floor(s / 60);
-      const secs = s % 60;
-      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    function formatTime(secs) {
+      const m = Math.floor(secs / 60);
+      const s = secs % 60;
+      return `${m}:${s.toString().padStart(2, '0')}`;
     }
 
     function startTimer() {
       totalSeconds = 0;
+      limitWarning.style.display = 'none';
       timerEl.textContent = '0:00';
+
       timerInterval = setInterval(() => {
         totalSeconds++;
         timerEl.textContent = formatTime(totalSeconds);
 
-        if (totalSeconds >= MAX_RECORDING_SECONDS) {
-          recognition.stop(); // Let onend() handle next
+        if (totalSeconds === MAX_SECONDS - 15) {
+          limitWarning.style.display = 'block';
+        }
+
+        if (totalSeconds >= MAX_SECONDS) {
+          autoRestart = false;
+          recognition.stop();
         }
       }, 1000);
     }
 
     function stopTimer() {
       clearInterval(timerInterval);
-      timerEl.textContent = '';
+      timerInterval = null;
     }
+
+    const browserInfo = (() => {
+      const ua = navigator.userAgent;
+      if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
+        return { name: "Google Chrome", supported: true };
+      } else if (/edg/i.test(ua)) {
+        return { name: "Microsoft Edge", supported: false };
+      } else if (/safari/i.test(ua) && !/chrome|chromium/i.test(ua)) {
+        return { name: "Safari", supported: true };
+      } else {
+        return { name: "Unknown", supported: false };
+      }
+    })();
+
+    const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
     if (!isSpeechSupported || !browserInfo.supported) {
       browserWarning.style.display = 'block';
@@ -218,11 +213,12 @@
         };
 
         recognition.onend = () => {
-          indicator.style.display = 'none';
           stopTimer();
+          indicator.style.display = 'none';
+          limitWarning.style.display = 'none';
 
-          if (isRecording && totalSeconds < MAX_RECORDING_SECONDS) {
-            recognition.start(); // Auto-restart on pause
+          if (isRecording && autoRestart) {
+            recognition.start();
           } else {
             isRecording = false;
             isFinished = true;
@@ -231,9 +227,9 @@
         };
 
         recognition.onerror = (event) => {
+          stopTimer();
           console.error('Speech error:', event.error);
           indicator.style.display = 'none';
-          stopTimer();
           actionBtn.textContent = 'Record';
         };
 
@@ -265,9 +261,11 @@
             finalTranscript = '';
             interimTranscript = '';
             transcriptionBox.value = '';
+            autoRestart = true;
             recognition.start();
           } else {
-            recognition.stop(); // user-initiated stop
+            autoRestart = false;
+            recognition.stop();
           }
         };
       }).catch(() => {
