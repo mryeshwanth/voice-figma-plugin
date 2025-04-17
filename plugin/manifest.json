@@ -1,11 +1,17 @@
 {
   "name": "Voice to Text for Figma",
-  "id": "voice-to-text-transcription",
+  "id": "1494568571000024532",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "popup.html",
   "editorType": ["figma"],
   "permissions": [],
+  "documentAccess": "dynamic-page",
+  "networkAccess": {
+    "allowedDomains": [
+      "https://voice-figma-plugin-production.up.railway.app"
+    ]
+  },
   "menu": [
     {
       "name": "Transcribe Voice Input",
