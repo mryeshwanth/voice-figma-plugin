@@ -51,20 +51,6 @@
       color: #0c5460;
       border: 1px solid #bee5eb;
     }
-    .supported-browsers table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 14px;
-    }
-    .supported-browsers th, .supported-browsers td {
-      border: 1px solid #ddd;
-      padding: 6px 10px;
-      text-align: left;
-    }
-    .supported-browsers th {
-      background-color: #f9f9f9;
-    }
 
     #recording-indicator {
       display: none;
@@ -90,6 +76,13 @@
       50% { opacity: 0.4; }
       100% { opacity: 1; }
     }
+
+    #timer {
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -98,7 +91,7 @@
     <p>Click "Record" to begin speaking. Your text will appear below.</p>
   </header>
 
-  <!-- Microphone instructions -->
+  <!-- Mic Instructions -->
   <div id="mic-warning" class="message-box info" style="display:none;">
     <h3>Microphone Access Required</h3>
     <ul>
@@ -110,14 +103,14 @@
     <p>After allowing access, refresh this page.</p>
   </div>
 
-  <!-- Incompatible browser warning -->
   <div id="browser-warning" class="message-box warning" style="display:none;"></div>
 
-  <!-- Recording indicator -->
   <div id="recording-indicator">
     <div class="dot"></div>
     <span>Recording...</span>
   </div>
+
+  <div id="timer"></div>
 
   <button id="action-btn" style="display: none;">Record</button>
   <textarea id="transcription" placeholder="Your transcription will appear here..." style="display: none;"></textarea>
@@ -128,12 +121,16 @@
     const micWarning = document.getElementById('mic-warning');
     const browserWarning = document.getElementById('browser-warning');
     const indicator = document.getElementById('recording-indicator');
+    const timerEl = document.getElementById('timer');
     const session = new URLSearchParams(window.location.search).get('session');
 
     let recognition;
     let isRecording = false;
     let isFinished = false;
     let finalTranscript = '', interimTranscript = '';
+    let timerInterval, totalSeconds = 0;
+
+    const MAX_RECORDING_SECONDS = 120;
 
     const browserInfo = (() => {
       const ua = navigator.userAgent;
@@ -160,6 +157,30 @@
 
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
+    function formatTime(s) {
+      const mins = Math.floor(s / 60);
+      const secs = s % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function startTimer() {
+      totalSeconds = 0;
+      timerEl.textContent = '0:00';
+      timerInterval = setInterval(() => {
+        totalSeconds++;
+        timerEl.textContent = formatTime(totalSeconds);
+
+        if (totalSeconds >= MAX_RECORDING_SECONDS) {
+          recognition.stop(); // Let onend() handle next
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerInterval);
+      timerEl.textContent = '';
+    }
+
     if (!isSpeechSupported || !browserInfo.supported) {
       browserWarning.style.display = 'block';
       browserWarning.innerHTML = `
@@ -181,8 +202,10 @@
 
         recognition.onstart = () => {
           isRecording = true;
+          isFinished = false;
           indicator.style.display = 'flex';
           actionBtn.textContent = 'Stop';
+          startTimer();
         };
 
         recognition.onresult = (event) => {
@@ -195,15 +218,22 @@
         };
 
         recognition.onend = () => {
-          isRecording = false;
-          isFinished = true;
           indicator.style.display = 'none';
-          actionBtn.textContent = 'Send to Figma';
+          stopTimer();
+
+          if (isRecording && totalSeconds < MAX_RECORDING_SECONDS) {
+            recognition.start(); // Auto-restart on pause
+          } else {
+            isRecording = false;
+            isFinished = true;
+            actionBtn.textContent = 'Send to Figma';
+          }
         };
 
         recognition.onerror = (event) => {
           console.error('Speech error:', event.error);
           indicator.style.display = 'none';
+          stopTimer();
           actionBtn.textContent = 'Record';
         };
 
@@ -213,7 +243,6 @@
             if (!text || !session) return;
 
             actionBtn.disabled = true;
-
             try {
               const res = await fetch('/api/save-transcription', {
                 method: 'POST',
@@ -238,7 +267,7 @@
             transcriptionBox.value = '';
             recognition.start();
           } else {
-            recognition.stop();
+            recognition.stop(); // user-initiated stop
           }
         };
       }).catch(() => {
