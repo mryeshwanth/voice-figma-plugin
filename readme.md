@@ -101,5 +101,3 @@ Voice recognition powered by the Web Speech API.
 📃 License
 MIT
 
-
-Let me know if you'd like me to customize the GitHub repo link or project name!

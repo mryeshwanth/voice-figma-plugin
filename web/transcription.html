@@ -4,112 +4,92 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Voice Transcription</title>
-  <style>
-    body {
-      font-family: 'Inter', sans-serif;
-      padding: 20px;
-      max-width: 800px;
-      margin: auto;
-      color: #333;
-    }
-    header {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    textarea {
-      width: 100%;
-      height: 150px;
-      padding: 10px;
-      font-size: 16px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      resize: vertical;
-    }
-    button {
-      display: block;
-      margin: 20px auto;
-      padding: 12px 24px;
-      font-size: 16px;
-      border: none;
-      border-radius: 6px;
-      background-color: #18A0FB;
-      color: white;
-      cursor: pointer;
-    }
-    .message-box {
-      padding: 15px;
-      border-radius: 6px;
-      margin-bottom: 20px;
-    }
-    .warning {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-    }
-    .info {
-      background-color: #e8f4fd;
-      color: #0c5460;
-      border: 1px solid #bee5eb;
-    }
-    #recording-indicator {
-      display: none;
-      justify-content: center;
-      align-items: center;
-      margin-top: 10px;
-      font-size: 14px;
-      color: #c00;
-    }
-    .dot {
-      width: 10px;
-      height: 10px;
-      background: red;
-      border-radius: 50%;
-      margin-right: 8px;
-      animation: pulse 1.5s infinite;
-    }
-    @keyframes pulse {
-      0% { opacity: 1; }
-      50% { opacity: 0.4; }
-      100% { opacity: 1; }
-    }
-    #timer {
-      text-align: center;
-      font-size: 14px;
-      color: #555;
-      margin-top: 5px;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-  <header>
-    <h1>Voice to Text</h1>
-    <p>Click "Record" to begin speaking. Your text will appear below.</p>
+<body class="font-sans m-0 p-5 max-w-2xl mx-auto leading-normal">
+  <!-- Page header with clear instructions -->
+  <header class="mb-5">
+    <h1 class="text-2xl font-bold text-gray-800">Voice to Text</h1>
+    <p class="text-gray-600">Click "Record" to begin speaking. Your text will appear below.</p>
   </header>
 
-  <div id="mic-warning" class="message-box info" style="display:none;">
-    <h3>Microphone Access Required</h3>
-    <ul>
+  <!-- Microphone access warning with detailed instructions for different OS/browsers -->
+  <div id="mic-warning" class="hidden bg-blue-50 text-blue-800 border border-blue-200 rounded-lg p-4 mb-5" role="alert" aria-atomic="true">
+    <h3 class="font-bold text-lg mb-2">Microphone Access Required</h3>
+    <ul class="list-disc pl-5">
       <li><strong>Windows:</strong> Settings → Privacy → Microphone → Allow access</li>
       <li><strong>Mac:</strong> System Settings → Privacy & Security → Microphone → Enable for your browser</li>
       <li><strong>Chrome/Edge:</strong> Click lock icon → Site Settings → Allow Microphone</li>
       <li><strong>Safari:</strong> Preferences → Websites → Microphone → Allow</li>
     </ul>
-    <p>After allowing access, refresh this page.</p>
+    <p class="mt-2">After allowing access, refresh this page.</p>
   </div>
 
-  <div id="browser-warning" class="message-box warning" style="display:none;"></div>
-  <div id="limit-warning" class="message-box warning" style="display: none;">
+  <!-- Browser compatibility warning -->
+  <div id="browser-warning" class="hidden bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg p-4 mb-5" role="alert" aria-atomic="true"></div>
+  
+  <!-- Time limit warning -->
+  <div id="limit-warning" class="hidden bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-lg p-4 mb-5" role="alert" aria-live="assertive" aria-atomic="true">
     You're approaching the 60-second limit. Recording will stop soon.
   </div>
 
-  <div id="recording-indicator">
-    <div class="dot"></div>
-    <span>Recording...</span>
+  <!-- Recording indicator with ARIA live region -->
+  <div id="recording-indicator" class="hidden flex items-center justify-center my-4 h-8" role="status" aria-live="assertive" aria-atomic="true">
+    <div class="recording-dot w-4 h-4 bg-red-600 rounded-full mr-3 animate-pulse" aria-hidden="true"></div>
+    <span>Recording in progress</span>
   </div>
-  <div id="timer">0:00</div>
+  
+  <!-- Timer with ARIA role -->
+  <div id="timer" class="font-mono text-xl text-center my-3" role="timer" aria-label="Recording time" aria-live="polite">0:00</div>
 
-  <button id="action-btn" style="display: none;">Record</button>
-  <textarea id="transcription" placeholder="Your transcription will appear here..." style="display: none;"></textarea>
+  <!-- Controls section -->
+  <div class="flex flex-col items-center my-4">
+    <!-- Record/Stop button with ARIA states -->
+    <button id="action-btn" class="hidden bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium min-w-32 mb-3" aria-controls="transcription" aria-pressed="false">Record</button>
+    
+    <!-- Language selector with visible label -->
+    <div class="mt-4 text-center w-full">
+      <label for="language-select" class="block mb-1 font-medium text-gray-700">Choose Language</label>
+      <select id="language-select" class="py-2 px-3 rounded-md border border-gray-300 w-full max-w-xs mx-auto">
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="es-ES">Spanish (Spain)</option>
+        <option value="fr-FR">French</option>
+        <option value="de-DE">German</option>
+        <option value="it-IT">Italian</option>
+        <option value="ja-JP">Japanese</option>
+        <option value="ko-KR">Korean</option>
+        <option value="zh-CN">Chinese (Simplified)</option>
+        <option value="pt-BR">Portuguese (Brazil)</option>
+        <option value="ru-RU">Russian</option>
+        <option value="hi-IN">Hindi</option>
+        <option value="ar-SA">Arabic</option>
+        <option value="nl-NL">Dutch</option>
+        <option value="sv-SE">Swedish</option>
+        <option value="pl-PL">Polish</option>
+      </select>
+    </div>
+  </div>
+  
+  <!-- Transcription area with proper labeling -->
+  <div class="w-full">
+    <label for="transcription" class="block mb-1 font-medium text-gray-700">Transcribed Text</label>
+    <textarea id="transcription" placeholder="Your transcription will appear here..." class="hidden w-full h-48 border border-gray-300 rounded-md p-3 font-sans text-base" aria-live="polite"></textarea>
+  </div>
+
+  <!-- Keyboard shortcuts help section -->
+  <div id="keyboard-shortcuts" class="hidden bg-blue-50 text-blue-800 border border-blue-200 rounded-lg p-4 mt-5">
+    <h3 class="font-bold text-lg mb-2">Keyboard Shortcuts</h3>
+    <ul class="space-y-1">
+      <li><kbd class="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded-md">Space</kbd> or <kbd class="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded-md">Enter</kbd>: Start/Stop recording when button is focused</li>
+      <li><kbd class="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded-md">Ctrl</kbd> + <kbd class="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded-md">R</kbd>: Toggle recording from anywhere</li>
+      <li><kbd class="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded-md">Ctrl</kbd> + <kbd class="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded-md">S</kbd>: Send transcription to Figma</li>
+      <li><kbd class="px-2 py-1 text-xs font-semibold bg-gray-100 border border-gray-300 rounded-md">Escape</kbd>: Cancel current transcription</li>
+    </ul>
+  </div>
+
+  <!-- Screen reader only utilities -->
+  <div class="sr-only absolute w-px h-px overflow-hidden" aria-hidden="true"></div>
 
   <script>
     const actionBtn = document.getElementById('action-btn');
@@ -119,6 +99,8 @@
     const indicator = document.getElementById('recording-indicator');
     const limitWarning = document.getElementById('limit-warning');
     const timerEl = document.getElementById('timer');
+    const languageSelect = document.getElementById('language-select');
+    const keyboardShortcuts = document.getElementById('keyboard-shortcuts');
     const session = new URLSearchParams(window.location.search).get('session');
 
     let recognition;
@@ -138,15 +120,28 @@
 
     function startTimer() {
       totalSeconds = 0;
-      limitWarning.style.display = 'none';
+      limitWarning.classList.add('hidden');
       timerEl.textContent = '0:00';
+      timerEl.setAttribute('aria-label', 'Recording time: 0 minutes 0 seconds');
 
       timerInterval = setInterval(() => {
         totalSeconds++;
         timerEl.textContent = formatTime(totalSeconds);
+        
+        // Update ARIA label for screen readers with current time
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = totalSeconds % 60;
+        timerEl.setAttribute('aria-label', `Recording time: ${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`);
 
         if (totalSeconds === MAX_SECONDS - 15) {
-          limitWarning.style.display = 'block';
+          limitWarning.classList.remove('hidden');
+          // Announce limit warning to screen readers
+          const ariaLive = document.createElement('div');
+          ariaLive.setAttribute('aria-live', 'assertive');
+          ariaLive.className = 'sr-only';
+          ariaLive.textContent = 'Warning: 15 seconds remaining before recording auto-stops';
+          document.body.appendChild(ariaLive);
+          setTimeout(() => document.body.removeChild(ariaLive), 3000);
         }
 
         if (totalSeconds >= MAX_SECONDS) {
@@ -161,118 +156,287 @@
       timerInterval = null;
     }
 
+    // Improved browser detection with more detailed feedback
     const browserInfo = (() => {
       const ua = navigator.userAgent;
       if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
         return { name: "Google Chrome", supported: true };
       } else if (/edg/i.test(ua)) {
-        return { name: "Microsoft Edge", supported: false };
+        return { name: "Microsoft Edge", supported: true };
+      } else if (/firefox/i.test(ua)) {
+        return { name: "Firefox", supported: false, reason: "Firefox requires special permissions for speech recognition." };
       } else if (/safari/i.test(ua) && !/chrome|chromium/i.test(ua)) {
         return { name: "Safari", supported: true };
+      } else if (/opr/i.test(ua) || /opera/i.test(ua)) {
+        return { name: "Opera", supported: true };
       } else {
-        return { name: "Unknown", supported: false };
+        return { name: "Unknown", supported: false, reason: "This browser is not supported for speech recognition." };
       }
     })();
 
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
 
+    // Enhanced keyboard shortcuts handling
+    document.addEventListener('keydown', (e) => {
+      // Space or Enter to toggle recording when focused on action button
+      if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === actionBtn) {
+        e.preventDefault();
+        actionBtn.click();
+      }
+      
+      // Ctrl+R to toggle recording from anywhere when transcription is visible
+      if (e.ctrlKey && e.key === 'r' && !transcriptionBox.classList.contains('hidden')) {
+        e.preventDefault();
+        actionBtn.click();
+      }
+      
+      // Ctrl+S to send transcription to Figma when in finished state
+      if (e.ctrlKey && e.key === 's' && isFinished) {
+        e.preventDefault();
+        actionBtn.click();
+      }
+      
+      // Escape to cancel current transcription during recording
+      if (e.key === 'Escape' && isRecording) {
+        e.preventDefault();
+        autoRestart = false;
+        recognition.stop();
+        announceToScreenReader('Recording cancelled');
+      }
+      
+      // Show/hide keyboard shortcuts help with ? key
+      if (e.key === '?') {
+        e.preventDefault();
+        keyboardShortcuts.classList.toggle('hidden');
+      }
+    });
+
+    // Helper function for screen reader announcements
+    function announceToScreenReader(message, priority = 'polite') {
+      const ariaLive = document.createElement('div');
+      ariaLive.setAttribute('aria-live', priority);
+      ariaLive.className = 'sr-only';
+      ariaLive.textContent = message;
+      document.body.appendChild(ariaLive);
+      setTimeout(() => document.body.removeChild(ariaLive), 3000);
+    }
+
     if (!isSpeechSupported || !browserInfo.supported) {
-      browserWarning.style.display = 'block';
-      browserWarning.innerHTML = `
-        <h3>Browser Compatibility Issue</h3>
-        <p>Your browser <strong>${browserInfo.name}</strong> does not support speech recognition.</p>
-        <p>Try using <strong>Google Chrome</strong> or <strong>Safari</strong> instead.</p>
+      browserWarning.classList.remove('hidden');
+      browserWarning.setAttribute('role', 'alert');
+      
+      let message = `
+        <h3 class="font-bold text-lg mb-2">Browser Compatibility Issue</h3>
+        <p>Your browser <strong>${browserInfo.name}</strong> does not support speech recognition.`;
+        
+      if (browserInfo.reason) {
+        message += ` ${browserInfo.reason}`;
+      }
+      
+      message += `</p>
+        <p class="mt-2">Try using <strong>Google Chrome</strong>, <strong>Edge</strong>, or <strong>Safari</strong> instead.</p>
       `;
+      
+      browserWarning.innerHTML = message;
     } else {
-      navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
-        micWarning.style.display = 'none';
-        actionBtn.style.display = 'block';
-        transcriptionBox.style.display = 'block';
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          micWarning.classList.add('hidden');
+          actionBtn.classList.remove('hidden');
+          transcriptionBox.classList.remove('hidden');
+          keyboardShortcuts.classList.remove('hidden');
 
-        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-        recognition = new SpeechRecognition();
-        recognition.continuous = true;
-        recognition.interimResults = true;
-        recognition.lang = 'en-US';
+          const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+          recognition = new SpeechRecognition();
+          recognition.continuous = true;
+          recognition.interimResults = true;
+          recognition.lang = languageSelect.value;
 
-        recognition.onstart = () => {
-          isRecording = true;
-          isFinished = false;
-          indicator.style.display = 'flex';
-          actionBtn.textContent = 'Stop';
-          startTimer();
-        };
-
-        recognition.onresult = (event) => {
-          interimTranscript = '';
-          for (let i = event.resultIndex; i < event.results.length; ++i) {
-            const transcript = event.results[i][0].transcript;
-            event.results[i].isFinal ? finalTranscript += transcript + ' ' : interimTranscript += transcript;
-          }
-          transcriptionBox.value = finalTranscript + interimTranscript;
-        };
-
-        recognition.onend = () => {
-          stopTimer();
-          indicator.style.display = 'none';
-          limitWarning.style.display = 'none';
-
-          if (isRecording && autoRestart) {
-            recognition.start();
-          } else {
-            isRecording = false;
-            isFinished = true;
-            actionBtn.textContent = 'Send to Figma';
-          }
-        };
-
-        recognition.onerror = (event) => {
-          stopTimer();
-          console.error('Speech error:', event.error);
-          indicator.style.display = 'none';
-          actionBtn.textContent = 'Record';
-        };
-
-        actionBtn.onclick = async () => {
-          if (isFinished) {
-            const text = transcriptionBox.value.trim();
-            if (!text || !session) return;
-
-            actionBtn.disabled = true;
-            try {
-              const res = await fetch('/api/save-transcription', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sessionToken: session, text })
-              });
-
-              if (res.ok) {
-                window.location.href = 'figma://';
-              } else {
-                alert('Failed to send transcription');
-                actionBtn.disabled = false;
+          // Update language when selection changes
+          languageSelect.addEventListener('change', () => {
+            if (recognition) {
+              const wasRecording = isRecording;
+              const selectedLanguageName = languageSelect.options[languageSelect.selectedIndex].text;
+              
+              if (wasRecording) {
+                autoRestart = false;
+                recognition.stop();
               }
-            } catch (err) {
-              console.error(err);
-              alert('Error sending transcription');
-              actionBtn.disabled = false;
+              
+              recognition.lang = languageSelect.value;
+              
+              if (wasRecording) {
+                setTimeout(() => {
+                  autoRestart = true;
+                  recognition.start();
+                }, 200);
+              }
+              
+              // Announce language change to screen readers
+              announceToScreenReader(`Language changed to ${selectedLanguageName}`);
             }
-          } else if (!isRecording) {
-            finalTranscript = '';
+          });
+
+          recognition.onstart = () => {
+            isRecording = true;
+            isFinished = false;
+            indicator.classList.remove('hidden');
+            actionBtn.textContent = 'Stop';
+            actionBtn.setAttribute('aria-pressed', 'true');
+            actionBtn.setAttribute('aria-label', 'Stop recording');
+            actionBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+            actionBtn.classList.add('bg-red-600', 'hover:bg-red-700');
+            startTimer();
+            announceToScreenReader('Recording started', 'assertive');
+          };
+
+          recognition.onresult = (event) => {
             interimTranscript = '';
-            transcriptionBox.value = '';
-            autoRestart = true;
-            recognition.start();
-          } else {
-            autoRestart = false;
-            recognition.stop();
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+              const transcript = event.results[i][0].transcript;
+              event.results[i].isFinal ? finalTranscript += transcript + ' ' : interimTranscript += transcript;
+            }
+            transcriptionBox.value = finalTranscript + interimTranscript;
+            
+            // Ensure the textbox scrolls to show latest content
+            transcriptionBox.scrollTop = transcriptionBox.scrollHeight;
+          };
+
+          recognition.onend = () => {
+            stopTimer();
+            indicator.classList.add('hidden');
+            limitWarning.classList.add('hidden');
+
+            if (isRecording && autoRestart) {
+              recognition.start();
+            } else {
+              isRecording = false;
+              isFinished = true;
+              actionBtn.textContent = 'Send to Figma';
+              actionBtn.setAttribute('aria-pressed', 'false');
+              actionBtn.setAttribute('aria-label', 'Send transcription to Figma');
+              actionBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
+              actionBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+              
+              // Announce recording stopped to screen readers
+              announceToScreenReader('Recording stopped. Review and send to Figma.', 'assertive');
+            }
+          };
+
+          recognition.onerror = (event) => {
+            stopTimer();
+            console.error('Speech error:', event.error);
+            indicator.classList.add('hidden');
+            actionBtn.textContent = 'Record';
+            actionBtn.setAttribute('aria-pressed', 'false');
+            actionBtn.setAttribute('aria-label', 'Start recording');
+            actionBtn.classList.remove('bg-red-600', 'hover:bg-red-700', 'bg-green-600', 'hover:bg-green-700');
+            actionBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+            
+            // Create accessible error message
+            showError(getErrorMessage(event.error));
+          };
+
+          // Helper function to get user-friendly error messages
+          function getErrorMessage(errorType) {
+            switch(errorType) {
+              case 'no-speech':
+                return 'No speech was detected. Please try again.';
+              case 'audio-capture':
+                return 'No microphone was found or microphone is disabled.';
+              case 'not-allowed':
+                return 'Microphone permission was denied. Please allow microphone access.';
+              case 'network':
+                return 'A network error occurred. Please check your connection.';
+              case 'aborted':
+                return 'Speech recognition was aborted.';
+              case 'language-not-supported':
+                return 'The selected language is not supported.';
+              default:
+                return 'An error occurred with speech recognition.';
+            }
           }
-        };
-      }).catch(() => {
-        micWarning.style.display = 'block';
-        actionBtn.style.display = 'none';
-        transcriptionBox.style.display = 'none';
-      });
+
+          // Show error message with appropriate ARIA attributes
+          function showError(message) {
+            const errorMessage = document.createElement('div');
+            errorMessage.setAttribute('role', 'alert');
+            errorMessage.className = 'bg-red-50 text-red-800 border border-red-200 rounded-lg p-4 mb-5';
+            errorMessage.textContent = message;
+            document.body.insertBefore(errorMessage, actionBtn.parentNode);
+            
+            // Remove after 5 seconds
+            setTimeout(() => {
+              if (document.body.contains(errorMessage)) {
+                document.body.removeChild(errorMessage);
+              }
+            }, 5000);
+            
+            // Announce to screen readers
+            announceToScreenReader(message, 'assertive');
+          }
+
+          actionBtn.onclick = async () => {
+            if (isFinished) {
+              const text = transcriptionBox.value.trim();
+              if (!text || !session) return;
+
+              actionBtn.disabled = true;
+              actionBtn.textContent = 'Sending...';
+              actionBtn.setAttribute('aria-busy', 'true');
+              
+              try {
+                announceToScreenReader('Sending transcription to Figma');
+                
+                const res = await fetch('/api/save-transcription', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ sessionToken: session, text })
+                });
+
+                if (res.ok) {
+                  // Announce to screen readers before redirecting
+                  announceToScreenReader('Transcription sent successfully. Returning to Figma.', 'assertive');
+                  
+                  // Short delay to allow screen readers to announce
+                  setTimeout(() => {
+                    window.location.href = 'figma://';
+                  }, 1000);
+                } else {
+                  throw new Error('Failed to send transcription');
+                }
+              } catch (err) {
+                console.error(err);
+                actionBtn.disabled = false;
+                actionBtn.textContent = 'Send to Figma';
+                actionBtn.setAttribute('aria-busy', 'false');
+                
+                showError('Error sending transcription. Please try again.');
+              }
+            } else if (!isRecording) {
+              finalTranscript = '';
+              interimTranscript = '';
+              transcriptionBox.value = '';
+              autoRestart = true;
+              recognition.start();
+            } else {
+              autoRestart = false;
+              recognition.stop();
+            }
+          };
+        })
+        .catch(() => {
+          micWarning.classList.remove('hidden');
+          actionBtn.classList.add('hidden');
+          transcriptionBox.classList.add('hidden');
+          
+          // Focus on the microphone warning for screen readers
+          setTimeout(() => {
+            micWarning.setAttribute('tabindex', '-1');
+            micWarning.focus();
+            setTimeout(() => micWarning.removeAttribute('tabindex'), 100);
+          }, 100);
+        });
     }
   </script>
 </body>
