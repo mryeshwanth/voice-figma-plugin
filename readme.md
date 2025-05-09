@@ -16,6 +16,7 @@ This plugin allows users to transcribe their voice directly into selected Figma 
 
 ---
 
+```
 ## 🗂️ File Structure
 
 voice-figma-plugin/
