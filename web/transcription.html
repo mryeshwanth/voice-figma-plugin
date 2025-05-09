@@ -111,7 +111,27 @@
 
     // First, immediately check if speech recognition is supported
     // This runs before any other code to ensure we don't flicker UI elements
+
     // Make sure we check for SpeechRecognition and webkitSpeechRecognition (Safari uses webkit prefix)
+    const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    const browserWarning = document.getElementById('browser-warning');
+    const appContainer = document.getElementById('app-container');
+    
+    // Default state: hide app container and show browser warning if speech not supported
+    if (!isSpeechSupported) {
+      // Ensure app container stays hidden
+      appContainer.classList.add('hidden');
+      // Make sure browser warning is visible
+      browserWarning.classList.remove('hidden');
+      browserWarning.setAttribute('role', 'alert');
+    } else {
+      // Initially hide browser warning if speech is supported
+      browserWarning.classList.add('hidden');
+    }
+
+    // Continue with the rest of the initialization
+
+    const appContainer = document.getElementById('app-container');
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const browserWarning = document.getElementById('browser-warning');
     const appContainer = document.getElementById('app-container');
