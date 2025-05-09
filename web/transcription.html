@@ -79,6 +79,10 @@
             </svg>
           </button>
         </div>
+
+
+        <p class="text-sm text-amber-600 mt-2">Note: Language support varies by browser. English has the best support across all browsers.</p>
+
       </div>
     </div>
     
@@ -104,6 +108,7 @@
   <div class="sr-only absolute w-px h-px overflow-hidden" aria-hidden="true"></div>
 
   <script>
+
     // First, immediately check if speech recognition is supported
     // This runs before any other code to ensure we don't flicker UI elements
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
@@ -123,6 +128,9 @@
     }
 
     // Continue with the rest of the initialization
+
+    const appContainer = document.getElementById('app-container');
+
     const actionBtn = document.getElementById('action-btn');
     const transcriptionBox = document.getElementById('transcription');
     const micWarning = document.getElementById('mic-warning');
@@ -214,6 +222,7 @@
       setTimeout(() => document.body.removeChild(ariaLive), 3000);
     }
 
+
     // Enhanced keyboard shortcuts handling - only register if app is visible
     if (isSpeechSupported && browserInfo.supported) {
       document.addEventListener('keydown', (e) => {
@@ -254,10 +263,56 @@
       });
     }
 
+    // Enhanced keyboard shortcuts handling
+    document.addEventListener('keydown', (e) => {
+      // Only handle keyboard shortcuts if the app is visible (browser is supported)
+      if (!appContainer.classList.contains('hidden')) {
+        // Space or Enter to toggle recording when focused on action button
+        if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === actionBtn) {
+          e.preventDefault();
+          actionBtn.click();
+        }
+        
+        // Ctrl+R to toggle recording from anywhere when transcription is visible
+        if (e.ctrlKey && e.key === 'r') {
+          e.preventDefault();
+          actionBtn.click();
+        }
+        
+        // Ctrl+S to send transcription to Figma when in finished state
+        if (e.ctrlKey && e.key === 's' && isFinished) {
+          e.preventDefault();
+          actionBtn.click();
+        }
+        
+        // Escape to cancel current transcription during recording
+        if (e.key === 'Escape' && isRecording) {
+          e.preventDefault();
+          autoRestart = false;
+          recognition.stop();
+          announceToScreenReader('Recording cancelled');
+        }
+        
+        // Show/hide keyboard shortcuts help with ? key
+        if (e.key === '?') {
+          e.preventDefault();
+          keyboardShortcuts.classList.toggle('hidden');
+        }
+      }
+    });
+
+
     // Double check for speech recognition support
     if (!isSpeechSupported || !browserInfo.supported) {
+
       // Keep the app container hidden and show the browser warning
       appContainer.classList.add('hidden');
+
+      // Keep the app container hidden
+      appContainer.classList.add('hidden');
+      
+      // Show browser warning
+
       browserWarning.classList.remove('hidden');
       
       // Create detailed browser warning message
@@ -286,7 +341,10 @@
           
           // Show app container since browser is supported and mic access is granted
           appContainer.classList.remove('hidden');
+
           browserWarning.classList.add('hidden');
+
+
 
           // Set up speech recognition
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -511,9 +569,16 @@
           };
         })
         .catch(() => {
+
           // Microphone access is denied, hide app container and show microphone warning
           appContainer.classList.add('hidden');
           browserWarning.classList.add('hidden');
+
+          // Keep the app container hidden since microphone access is denied
+          appContainer.classList.add('hidden');
+          
+          // Show microphone warning
+
           micWarning.classList.remove('hidden');
           
           // Focus on the microphone warning for screen readers
