@@ -111,6 +111,27 @@
 
     // First, immediately check if speech recognition is supported
     // This runs before any other code to ensure we don't flicker UI elements
+
+    // Make sure we check for SpeechRecognition and webkitSpeechRecognition (Safari uses webkit prefix)
+    const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    const browserWarning = document.getElementById('browser-warning');
+    const appContainer = document.getElementById('app-container');
+    
+    // Default state: hide app container and show browser warning if speech not supported
+    if (!isSpeechSupported) {
+      // Ensure app container stays hidden
+      appContainer.classList.add('hidden');
+      // Make sure browser warning is visible
+      browserWarning.classList.remove('hidden');
+      browserWarning.setAttribute('role', 'alert');
+    } else {
+      // Initially hide browser warning if speech is supported
+      browserWarning.classList.add('hidden');
+    }
+
+    // Continue with the rest of the initialization
+
+    const appContainer = document.getElementById('app-container');
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const browserWarning = document.getElementById('browser-warning');
     const appContainer = document.getElementById('app-container');
@@ -197,14 +218,16 @@
     // Improved browser detection with more detailed feedback
     const browserInfo = (() => {
       const ua = navigator.userAgent;
-      if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
+      // Check for Safari first - Safari's user agent contains "Safari" but also may contain "Chrome"
+      // Safari on iOS might appear as "iPhone" or "iPad"
+      if ((/safari/i.test(ua) && !/chrome|chromium/i.test(ua)) || /iphone|ipad|ipod/i.test(ua)) {
+        return { name: "Safari", supported: true };
+      } else if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
         return { name: "Google Chrome", supported: true };
       } else if (/edg/i.test(ua)) {
         return { name: "Microsoft Edge", supported: false, reason: "Microsoft Edge does not support speech recognition." };
       } else if (/firefox/i.test(ua)) {
         return { name: "Firefox", supported: false, reason: "Firefox requires special permissions for speech recognition." };
-      } else if (/safari/i.test(ua) && !/chrome|chromium/i.test(ua)) {
-        return { name: "Safari", supported: true };
       } else if (/opr/i.test(ua) || /opera/i.test(ua)) {
         return { name: "Opera", supported: true };
       } else {
@@ -347,6 +370,7 @@
 
 
           // Set up speech recognition
+          // Safari uses webkitSpeechRecognition, so make sure we check for that explicitly
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
           recognition = new SpeechRecognition();
           recognition.continuous = true;
