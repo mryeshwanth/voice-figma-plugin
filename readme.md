@@ -102,3 +102,16 @@ Voice recognition powered by the Web Speech API.
 📃 License
 MIT
 
+# Security Policy
+
+## Data Privacy
+
+This plugin **does not collect, store, or transmit any user data, voice recordings, or personal information** to any external service. All speech recognition is done **locally in your browser** using the native Web Speech API.
+
+## Network Access
+
+The plugin connects only to the developer’s hosted instance for sending transcribed text. It does **not transmit any data derived from the Figma API** or access external APIs beyond that.
+
+## Reporting a Vulnerability
+
+If you discover a security issue or privacy concern, please open an issue on the GitHub repository or email the maintainer directly.
