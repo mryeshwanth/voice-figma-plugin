@@ -45,7 +45,7 @@ voice-figma-plugin/
 ### 1. Clone & Install
 
 
-git clone https://github.com/yourusername/figma-transcription-plugin.git
+git clone https://github.com/mryeshwanth/voice-figma-plugin.git
 cd figma-transcription-plugin
 npm install
 
@@ -58,13 +58,10 @@ http://localhost:8080/public/transcription.html?session=someToken
 
 
 🧩 Load Plugin in Figma (Desktop/Mac App)
-Open Figma → Plugins → Development → New Plugin...
-
-Choose "Link existing manifest.json"
-
-Browse to manifest.json inside this repo
-
-Launch the plugin → it will open the new multi-step popup
+- Open Figma → Plugins → Development → New Plugin...
+- Choose "Link existing manifest.json"
+- Browse to manifest.json inside this repo
+- Launch the plugin → it will open the new multi-step popup
 
 🌐 Browser Support
 Browser Supported
@@ -89,9 +86,7 @@ Settings → Privacy → Microphone → Allow access for apps and browsers
 
 📌 Notes
 - All transcription happens locally in the browser
-
 - No audio is stored or sent to servers
-
 - Works across both Figma Desktop and Browser
 
 🙌 Credits
