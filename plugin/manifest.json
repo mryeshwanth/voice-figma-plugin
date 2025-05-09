@@ -17,5 +17,13 @@
       "name": "Transcribe Voice Input",
       "command": "start"
     }
-  ]
+  ],
+  "relaunchButtons": [
+    {
+      "command": "start",
+      "name": "Open Voice Transcription",
+      "multipleSelection": false
+    }
+  ],
+  "capabilities": ["textreview"]
 }

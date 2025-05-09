@@ -5,117 +5,278 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Voice to Text</title>
   <style>
+    /* Base styles */
     body {
-      font-family: Inter, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       margin: 0;
-      padding: 24px;
-      max-width: 600px;
-      margin: auto;
+      padding: 16px;
+      line-height: 1.5;
       color: #333;
     }
-
+    
     h2 {
-      font-size: 20px;
-      margin-bottom: 24px;
-      text-align: center;
+      margin-top: 0;
+      font-size: 18px;
+      color: #333;
     }
-
-    p {
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
+    
     .view {
       display: none;
-      transition: all 0.3s ease;
+      padding: 8px;
     }
-
+    
     .view.active {
       display: block;
     }
-
+    
     .button-group {
       display: flex;
-      justify-content: center;
       flex-direction: column;
-      align-items: center;
-      gap: 10px;
+      gap: 8px;
+      margin-top: 16px;
     }
-
+    
+    /* Enhanced accessibility styles */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
+    
+    /* Improved focus styles with better visibility */
+    *:focus-visible {
+      outline: 3px solid #4285f4;
+      outline-offset: 2px;
+      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3);
+    }
+    
+    /* Improved contrast buttons */
     button {
-      padding: 10px 20px;
-      font-size: 14px;
-      border: none;
-      border-radius: 6px;
-      background-color: #18A0FB;
+      background-color: #0066CC; /* Improved from #18A0FB for better contrast (AA) */
       color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 10px 15px;
+      font-size: 14px;
+      font-weight: 500;
       cursor: pointer;
       width: 100%;
-      max-width: 240px;
-    }
-
-    button.secondary {
-      background-color: #ccc;
-      color: #333;
-    }
-
-    .status {
-      font-size: 14px;
-      color: #666;
       text-align: center;
-      margin-top: 10px;
+      position: relative;
     }
-
+    
+    button.secondary {
+      background-color: #555; /* Improved from #ccc for better contrast */
+      color: white;
+    }
+    
+    /* Alert role styling with improved contrast */
+    [role="alert"] {
+      border-left: 4px solid #cc0000;
+      padding: 8px 12px;
+      margin: 12px 0;
+      background-color: #fff3cd;
+      color: #664d03; /* Darker for better contrast (AA) */
+      font-weight: 500;
+    }
+    
+    /* Status role styling */
+    [role="status"] {
+      padding: 8px;
+      margin: 8px 0;
+      border-left: 4px solid #0066CC;
+      background-color: #e6f7ff;
+    }
+    
+    /* Add skip-to-content link for keyboard users */
+    .skip-link {
+      position: absolute;
+      top: -40px;
+      left: 0;
+      background: #0066CC;
+      color: white;
+      padding: 8px;
+      z-index: 100;
+      transition: top 0.2s;
+    }
+    
+    .skip-link:focus {
+      top: 0;
+    }
+    
+    /* Add animation for people who prefer reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        animation-duration: 0.001ms !important;
+        transition-duration: 0.001ms !important;
+      }
+    }
+    
+    /* Loading indicator */
+    .loading-indicator {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Keyboard shortcut hints */
+    kbd {
+      background-color: #f7f7f7;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+      color: #333;
+      display: inline-block;
+      font-size: 12px;
+      line-height: 1;
+      padding: 2px 4px;
+      margin: 0 2px;
+    }
+    
+    .keyboard-shortcuts {
+      margin-top: 12px;
+      padding: 8px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+      font-size: 12px;
+    }
+    
+    .shortcut-list {
+      margin: 4px 0;
+      padding-left: 20px;
+    }
   </style>
 </head>
 <body>
-
-  <!-- Step 1: Mode Selection -->
-  <div id="view-mode" class="view">
-    <h2>How would you like to add transcription (voice-to-text)?</h2>
-    <div class="button-group">
-      <button id="btn-insert-new">Insert New Text</button>
-      <button id="btn-select-existing">Select Existing Text</button>
+  <!-- Skip to content link for keyboard users -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <main id="main-content">
+    <!-- Step 1: Mode Selection -->
+    <div id="view-mode" class="view" role="region" aria-labelledby="mode-heading">
+      <h2 id="mode-heading">How would you like to add transcription?</h2>
+      <div class="button-group" role="group" aria-label="Transcription mode options">
+        <button id="btn-insert-new" aria-describedby="insert-new-desc">
+          Insert New Text
+          <span class="sr-only">(keyboard shortcut: n)</span>
+        </button>
+        <span id="insert-new-desc" class="sr-only">Creates a new text layer with your voice transcription</span>
+        
+        <button id="btn-select-existing" aria-describedby="select-existing-desc">
+          Select Existing Text
+          <span class="sr-only">(keyboard shortcut: e)</span>
+        </button>
+        <span id="select-existing-desc" class="sr-only">Updates an existing text layer with your voice transcription</span>
+      </div>
+      
+      <!-- Keyboard shortcuts for this view -->
+      <div class="keyboard-shortcuts" aria-labelledby="shortcuts-heading-mode">
+        <h3 id="shortcuts-heading-mode" class="sr-only">Keyboard Shortcuts</h3>
+        <ul class="shortcut-list">
+          <li><kbd>N</kbd> - Insert new text</li>
+          <li><kbd>E</kbd> - Select existing text</li>
+        </ul>
+      </div>
     </div>
-  </div>
 
-  <!-- Step 2: Text Layer Validation -->
-  <div id="view-check-selection" class="view">
-    <h2>Select a Text Layer</h2>
-    <p>Please select a text layer in your Figma document.</p>
-    <div class="button-group">
-      <button id="btn-retry-selection">Retry</button>
+    <!-- Step 2: Text Layer Validation -->
+    <div id="view-check-selection" class="view" role="region" aria-labelledby="check-heading">
+      <h2 id="check-heading">Select a Text Layer</h2>
+      <p id="selection-instructions">Please select a text layer in your Figma document.</p>
+      
+      <div role="status" id="selection-status" aria-live="polite" class="sr-only"></div>
+      
+      <div class="button-group">
+        <button id="btn-retry-selection" aria-describedby="retry-desc">
+          Retry Selection
+          <span class="sr-only">(keyboard shortcut: r)</span>
+        </button>
+        <span id="retry-desc" class="sr-only">Check if you have selected a valid text layer</span>
+        
+        <button id="btn-back-selection" class="secondary">
+          Back to Mode Selection
+          <span class="sr-only">(keyboard shortcut: escape)</span>
+        </button>
+      </div>
     </div>
-  </div>
 
-  <!-- Step 3: Open Tool -->
-  <div id="view-open-tool" class="view">
-    <h2>Start Transcription</h2>
-    <p>This will open a new browser window.</p>
-    <div class="button-group">
-      <button id="btn-open-tool">Open Transcription Tool</button>
-      <button id="btn-back-tool" class="secondary">← Back</button>
+    <!-- Step 3: Open Tool -->
+    <div id="view-open-tool" class="view" role="region" aria-labelledby="open-tool-heading">
+      <h2 id="open-tool-heading">Start Transcription</h2>
+      <p>This will open a new browser window with the transcription tool.</p>
+      <p>You'll need to allow microphone access in your browser.</p>
+      
+      <div class="button-group">
+        <button id="btn-open-tool" aria-describedby="open-tool-desc">
+          Open Transcription Tool
+          <span class="sr-only">(keyboard shortcut: o)</span>
+        </button>
+        <span id="open-tool-desc" class="sr-only">Opens the voice transcription interface in your browser</span>
+        
+        <button id="btn-back-tool" class="secondary" aria-describedby="back-tool-desc">
+          Back
+          <span class="sr-only">(keyboard shortcut: escape)</span>
+        </button>
+        <span id="back-tool-desc" class="sr-only">Return to previous step</span>
+      </div>
     </div>
-  </div>
 
-  <!-- Step 4: Waiting View -->
-  <div id="view-waiting" class="view">
-    <h2>Listening for Transcription</h2>
-    <p class="status" id="status-message">Waiting for transcription...</p>
-    <div class="button-group">
-      <button id="btn-check-now" class="primary">Check Now</button>
-      <button id="btn-cancel" class="secondary">Cancel</button>
+    <!-- Step 4: Waiting View -->
+    <div id="view-waiting" class="view" role="region" aria-labelledby="waiting-heading">
+      <h2 id="waiting-heading">Listening for Transcription</h2>
+      <div role="status" aria-live="polite" id="status-container">
+        <p class="status" id="status-message">Waiting for transcription...</p>
+      </div>
+      
+      <div class="button-group">
+        <button id="btn-check-now" class="primary" aria-describedby="check-now-desc">
+          Check Now
+          <span class="sr-only">(keyboard shortcut: c)</span>
+        </button>
+        <span id="check-now-desc" class="sr-only">Immediately check for new transcription data</span>
+        
+        <button id="btn-cancel" class="secondary" aria-describedby="cancel-desc">
+          Cancel
+          <span class="sr-only">(keyboard shortcut: escape)</span>
+        </button>
+        <span id="cancel-desc" class="sr-only">Cancel the current transcription process</span>
+      </div>
+      
+      <!-- Progress indication for screen readers -->
+      <div aria-live="polite" class="sr-only" id="polling-status">
+        Checking for transcription every few seconds.
+      </div>
     </div>
-  </div>
 
-  <!-- Step 5: Success -->
-  <div id="view-success" class="view">
-    <h2>Success!</h2>
-    <p>Text has been added to Figma.</p>
-    <div class="button-group">
-      <button id="btn-new-transcription">Start Again</button>
+    <!-- Step 5: Success -->
+    <div id="view-success" class="view" role="region" aria-labelledby="success-heading">
+      <h2 id="success-heading">Success!</h2>
+      <p>Text has been added to Figma.</p>
+      <div class="button-group">
+        <button id="btn-new-transcription" aria-describedby="new-transcription-desc">
+          Start New Transcription
+          <span class="sr-only">(keyboard shortcut: s)</span>
+        </button>
+        <span id="new-transcription-desc" class="sr-only">Begin a new voice transcription process</span>
+      </div>
     </div>
-  </div>
+  </main>
 
   <script>
     const views = {
@@ -127,13 +288,39 @@
     };
 
     const statusMessage = document.getElementById('status-message');
+    const statusContainer = document.getElementById('status-container');
+    const pollingStatus = document.getElementById('polling-status');
+    const selectionStatus = document.getElementById('selection-status');
+    
     let sessionToken = null;
     let mode = null;
     let pollingInterval = null;
+    let activeViewKey = 'mode'; // Track the currently active view
     
+    // Enhanced view switching with better focus management
     function showView(viewKey) {
+      // Store previous view for potential announcements
+      const previousViewKey = activeViewKey;
+      activeViewKey = viewKey;
+      
+      // Hide all views
       Object.values(views).forEach(view => view.classList.remove('active'));
+      
+      // Show requested view
       views[viewKey].classList.add('active');
+      
+      // Find the heading in the newly active view and focus it
+      const headingElement = views[viewKey].querySelector('h2');
+      if (headingElement) {
+        // Make it focusable temporarily
+        headingElement.setAttribute('tabindex', '-1');
+        headingElement.focus();
+        // Remove tabindex after focus to avoid keyboard tab order issues
+        setTimeout(() => headingElement.removeAttribute('tabindex'), 100);
+      }
+      
+      // Announce view change to screen readers with more context
+      announceViewChange(viewKey, previousViewKey);
       
       // Start polling when entering wait view, stop polling otherwise
       if (viewKey === 'wait') {
@@ -143,104 +330,315 @@
       }
     }
 
+    // Announce view changes more descriptively
+    function announceViewChange(newViewKey, previousViewKey) {
+      const viewNames = {
+        mode: "Mode Selection",
+        check: "Text Layer Selection",
+        tool: "Transcription Tool",
+        wait: "Waiting for Transcription",
+        success: "Success"
+      };
+      
+      // Create aria-live element to announce the change
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', 'assertive');
+      announcement.classList.add('sr-only');
+      
+      // Customize message based on which view we're entering
+      let message = `Navigated to ${viewNames[newViewKey]} view`;
+      
+      // Add extra context for certain view transitions
+      if (newViewKey === 'wait') {
+        message += ". Checking for transcription data every few seconds.";
+      } else if (newViewKey === 'success') {
+        message += ". Your transcription has been added to Figma.";
+      }
+      
+      announcement.textContent = message;
+      document.body.appendChild(announcement);
+      
+      // Remove after screen readers have had time to announce
+      setTimeout(() => {
+        if (document.body.contains(announcement)) {
+          document.body.removeChild(announcement);
+        }
+      }, 3000);
+    }
+
     function generateSessionToken() {
       return Date.now().toString(36) + Math.random().toString(36).substring(2);
     }
     
+    // Enhanced polling with better screen reader feedback
     function startPolling() {
       // Clear any existing interval first to avoid multiple intervals
       stopPolling();
       
+      // Initial check immediately
+      checkForTranscription();
+      
+      // Update ARIA live region for screen readers
+      pollingStatus.textContent = "Checking for transcription every 2 seconds. You will be notified when complete.";
+      
       // Start new polling interval
       pollingInterval = setInterval(() => {
-        parent.postMessage({ pluginMessage: { type: 'check-for-transcription' } }, '*');
-        statusMessage.textContent = 'Checking for transcription... Give me few seconds';
+        checkForTranscription();
       }, 2000); // Check every 2 seconds
+    }
+    
+    function checkForTranscription() {
+      // Update status visually and for screen readers
+      statusMessage.textContent = 'Checking for transcription...';
+      
+      // Send message to plugin code
+      parent.postMessage({ pluginMessage: { type: 'check-for-transcription' } }, '*');
     }
     
     function stopPolling() {
       if (pollingInterval) {
         clearInterval(pollingInterval);
         pollingInterval = null;
+        pollingStatus.textContent = "Transcription checks paused.";
       }
     }
 
-    // Button Events
-    document.getElementById('btn-insert-new').onclick = () => {
+    // Reusable function for screen reader announcements
+    function announceToScreenReader(message, priority = 'polite') {
+      const announcement = document.createElement('div');
+      announcement.setAttribute('aria-live', priority);
+      announcement.classList.add('sr-only');
+      announcement.textContent = message;
+      document.body.appendChild(announcement);
+      setTimeout(() => {
+        if (document.body.contains(announcement)) {
+          document.body.removeChild(announcement);
+        }
+      }, 3000);
+    }
+
+    // Show error with proper ARIA alert
+    function showError(message) {
+      // Create error element with proper role
+      const errorElement = document.createElement('div');
+      errorElement.setAttribute('role', 'alert');
+      errorElement.textContent = message;
+      
+      // Add to status container
+      statusContainer.appendChild(errorElement);
+      
+      // Remove after 5 seconds
+      setTimeout(() => {
+        if (statusContainer.contains(errorElement)) {
+          statusContainer.removeChild(errorElement);
+        }
+      }, 5000);
+    }
+
+    // Enhanced button handler with keyboard support
+    function setupButtonWithKeyboard(buttonId, clickHandler) {
+      const button = document.getElementById(buttonId);
+      if (button) {
+        button.addEventListener('click', clickHandler);
+        button.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            clickHandler();
+          }
+        });
+      }
+    }
+
+    // Setup all buttons with keyboard support
+    setupButtonWithKeyboard('btn-insert-new', () => {
       mode = 'new';
       sessionToken = generateSessionToken();
       parent.postMessage({ pluginMessage: { type: 'mode-new', session: sessionToken } }, '*');
       showView('tool');
-    };
+    });
 
-    document.getElementById('btn-select-existing').onclick = () => {
+    setupButtonWithKeyboard('btn-select-existing', () => {
       mode = 'existing';
       sessionToken = generateSessionToken();
       parent.postMessage({ pluginMessage: { type: 'check-selection', session: sessionToken } }, '*');
-    };
+    });
 
-    document.getElementById('btn-retry-selection').onclick = () => {
+    setupButtonWithKeyboard('btn-retry-selection', () => {
+      selectionStatus.textContent = "Checking your selection...";
       parent.postMessage({ pluginMessage: { type: 'check-selection', session: sessionToken } }, '*');
-    };
+    });
+    
+    setupButtonWithKeyboard('btn-back-selection', () => {
+      showView('mode');
+    });
 
-    document.getElementById('btn-open-tool').onclick = () => {
+    setupButtonWithKeyboard('btn-open-tool', () => {
       showView('wait');
       parent.postMessage({ pluginMessage: { type: 'open-transcription-tool', session: sessionToken } }, '*');
-    };
+    });
 
-    document.getElementById('btn-check-now').onclick = () => {
+    setupButtonWithKeyboard('btn-check-now', () => {
       statusMessage.textContent = 'Checking for transcription...';
+      announceToScreenReader('Manually checking for transcription now.');
       parent.postMessage({ pluginMessage: { type: 'check-for-transcription' } }, '*');
-    };
+    });
 
-    document.getElementById('btn-cancel').onclick = () => {
+    setupButtonWithKeyboard('btn-cancel', () => {
+      announceToScreenReader('Transcription process cancelled.');
       showView('tool');
-    };
+    });
 
-    document.getElementById('btn-back-tool').onclick = () => {
+    setupButtonWithKeyboard('btn-back-tool', () => {
       showView('mode');
-    };
+    });
 
-    document.getElementById('btn-new-transcription').onclick = () => {
+    setupButtonWithKeyboard('btn-new-transcription', () => {
+      announceToScreenReader('Starting a new transcription.');
       showView('mode');
-    };
+    });
 
-    // Listen for plugin messages
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Skip if user is in a text field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      // Handle global shortcuts based on active view
+      switch (activeViewKey) {
+        case 'mode':
+          if (e.key === 'n' || e.key === 'N') {
+            e.preventDefault();
+            document.getElementById('btn-insert-new').click();
+          } else if (e.key === 'e' || e.key === 'E') {
+            e.preventDefault();
+            document.getElementById('btn-select-existing').click();
+          }
+          break;
+          
+        case 'check':
+          if (e.key === 'r' || e.key === 'R') {
+            e.preventDefault();
+            document.getElementById('btn-retry-selection').click();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            document.getElementById('btn-back-selection').click();
+          }
+          break;
+          
+        case 'tool':
+          if (e.key === 'o' || e.key === 'O') {
+            e.preventDefault();
+            document.getElementById('btn-open-tool').click();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            document.getElementById('btn-back-tool').click();
+          }
+          break;
+          
+        case 'wait':
+          if (e.key === 'c' || e.key === 'C') {
+            e.preventDefault();
+            document.getElementById('btn-check-now').click();
+          } else if (e.key === 'Escape') {
+            e.preventDefault();
+            document.getElementById('btn-cancel').click();
+          }
+          break;
+          
+        case 'success':
+          if (e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            document.getElementById('btn-new-transcription').click();
+          }
+          break;
+      }
+    });
+
+    // Trap focus within active view for keyboard users
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        const activeView = document.querySelector('.view.active');
+        if (activeView) {
+          const focusableElements = activeView.querySelectorAll('button, [tabindex]:not([tabindex="-1"])');
+          if (focusableElements.length > 0) {
+            const firstElement = focusableElements[0];
+            const lastElement = focusableElements[focusableElements.length - 1];
+            
+            if (e.shiftKey && document.activeElement === firstElement) {
+              e.preventDefault();
+              lastElement.focus();
+            } else if (!e.shiftKey && document.activeElement === lastElement) {
+              e.preventDefault();
+              firstElement.focus();
+            }
+          }
+        }
+      }
+    });
+
+    // Listen for plugin messages with enhanced error handling
     window.onmessage = (event) => {
       const msg = event.data.pluginMessage;
       if (!msg || !msg.type) return;
 
       switch (msg.type) {
         case 'selection-valid':
+          selectionStatus.textContent = `Selected text layer "${msg.name}" is valid.`;
           showView('tool');
           break;
+          
         case 'selection-invalid':
+          selectionStatus.textContent = "No valid text layer selected. Please select a single text layer in Figma.";
           showView('check');
           break;
+          
         case 'opening-browser':
-          statusMessage.textContent = 'Browser opened. Please start speaking...';
+          statusMessage.textContent = 'Browser opened. Please begin speaking when prompted.';
+          announceToScreenReader('Browser window opening. Please begin speaking when prompted.');
           break;
+          
         case 'transcription-received':
-          stopPolling(); // Ensure polling stops when transcription is received
+          stopPolling();
+          announceToScreenReader('Transcription successfully added to your Figma document!', 'assertive');
           showView('success');
           break;
+          
         case 'transcription-check-error':
-          statusMessage.textContent = 'Error checking for transcription.';
+          const errorMsg = msg.error || 'Error checking for transcription.';
+          showError(errorMsg);
+          announceToScreenReader(`Error: ${errorMsg}`, 'assertive');
           break;
+          
         case 'no-transcription-found':
           statusMessage.textContent = 'No transcription found yet. Checking again soon...';
           break;
+          
         case 'text-insertion-error':
-          statusMessage.textContent = 'Error inserting text.';
+          const insertError = msg.error || 'Error inserting text into Figma.';
+          showError(insertError);
+          announceToScreenReader(`Error: ${insertError}`, 'assertive');
           break;
       }
     };
 
+    // Initialize on page load
     document.addEventListener('DOMContentLoaded', () => {
       showView('mode');
+      
+      // Focus first heading for screen readers
+      const firstHeading = document.querySelector('.view.active h2');
+      if (firstHeading) {
+        firstHeading.setAttribute('tabindex', '-1');
+        firstHeading.focus();
+        setTimeout(() => firstHeading.removeAttribute('tabindex'), 100);
+      }
+      
+      // Announce page loaded for screen readers
+      announceToScreenReader('Voice to Text plugin loaded. Choose how you would like to add transcription.');
     });
     
-    // Clean up interval on page unload/close to prevent memory leaks
+    // Clean up on page unload to prevent memory leaks
     window.addEventListener('beforeunload', () => {
       stopPolling();
     });
