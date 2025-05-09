@@ -47,11 +47,12 @@
     <!-- Record/Stop button with ARIA states -->
     <button id="action-btn" class="hidden bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium min-w-32 mb-3" aria-controls="transcription" aria-pressed="false">Record</button>
     
+    <!-- Language selector with visible label -->
     <div class="mt-4 text-center w-full">
       <label for="language-select" class="block mb-1 font-medium text-gray-700">Choose Language</label>
       <div class="flex max-w-xs mx-auto">
-        <select id="language-select" class="py-2 px-3 rounded-md border border-gray-300 w-full">
-          <option value="ar-SA">Arabic (العربية)</option>
+        <select id="language-select" class="py-2 px-3 rounded-l-md border border-gray-300 w-full">
+          <<option value="ar-SA">Arabic (العربية)</option>
           <option value="zh-CN">Chinese (简体中文)</option>
           <option value="nl-NL">Dutch (Nederlands)</option>
           <option value="en-GB">English (UK)</option>
@@ -64,9 +65,15 @@
           <option value="ko-KR">Korean (한국어)</option>
           <option value="pt-BR">Portuguese (Português)</option>
           <option value="ru-RU">Russian (Русский)</option>
-          <option value="es-ES">Spanish (Español)</option>
+          <option value="es-ES">Spanish (Español)</option>          
         </select>
+        <button id="check-support-btn" class="bg-gray-100 border border-gray-300 border-l-0 text-gray-700 px-2 rounded-r-md hover:bg-gray-200" title="Check language support" aria-label="Check language support">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
       </div>
+      <p class="text-sm text-amber-600 mt-2">Note: Language support varies by browser. English has the best support across all browsers.</p>
     </div>
   </div>
   
