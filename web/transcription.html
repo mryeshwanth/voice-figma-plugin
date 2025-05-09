@@ -108,10 +108,8 @@
   <div class="sr-only absolute w-px h-px overflow-hidden" aria-hidden="true"></div>
 
   <script>
-
     // First, immediately check if speech recognition is supported
     // This runs before any other code to ensure we don't flicker UI elements
-    // Make sure we check for SpeechRecognition and webkitSpeechRecognition (Safari uses webkit prefix)
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const browserWarning = document.getElementById('browser-warning');
     const appContainer = document.getElementById('app-container');
@@ -127,8 +125,6 @@
       // Initially hide browser warning if speech is supported
       browserWarning.classList.add('hidden');
     }
-
-    // Continue with the rest of the initialization
 
     const actionBtn = document.getElementById('action-btn');
     const transcriptionBox = document.getElementById('transcription');
@@ -193,23 +189,22 @@
       timerInterval = null;
     }
 
-    // Improved browser detection with more detailed feedback
+    // Simplified browser detection - just identify Safari but always set supported to true
     const browserInfo = (() => {
       const ua = navigator.userAgent;
-      // Check for Safari first - Safari's user agent contains "Safari" but also may contain "Chrome"
-      // Safari on iOS might appear as "iPhone" or "iPad"
+      // Simplified check for Safari - just check if it has "Safari" in user agent
       if (/safari/i.test(ua)) {  
         return { name: "Safari", supported: true };
       } else if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
         return { name: "Google Chrome", supported: true };
       } else if (/edg/i.test(ua)) {
-        return { name: "Microsoft Edge", supported: false, reason: "Microsoft Edge does not support speech recognition." };
+        return { name: "Microsoft Edge", supported: true };
       } else if (/firefox/i.test(ua)) {
-        return { name: "Firefox", supported: false, reason: "Firefox requires special permissions for speech recognition." };
+        return { name: "Firefox", supported: true };
       } else if (/opr/i.test(ua) || /opera/i.test(ua)) {
         return { name: "Opera", supported: true };
       } else {
-        return { name: "Unknown", supported: false, reason: "This browser is not supported for speech recognition." };
+        return { name: "Unknown", supported: true };
       }
     })();
 
@@ -223,9 +218,8 @@
       setTimeout(() => document.body.removeChild(ariaLive), 3000);
     }
 
-
     // Enhanced keyboard shortcuts handling - only register if app is visible
-    if (isSpeechSupported && browserInfo.supported) {
+    if (isSpeechSupported) {
       document.addEventListener('keydown', (e) => {
         // Only handle keyboard shortcuts if the app is visible
         if (!appContainer.classList.contains('hidden')) {
@@ -264,72 +258,11 @@
       });
     }
 
-    // Enhanced keyboard shortcuts handling
-    document.addEventListener('keydown', (e) => {
-      // Only handle keyboard shortcuts if the app is visible (browser is supported)
-      if (!appContainer.classList.contains('hidden')) {
-        // Space or Enter to toggle recording when focused on action button
-        if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === actionBtn) {
-          e.preventDefault();
-          actionBtn.click();
-        }
-        
-        // Ctrl+R to toggle recording from anywhere when transcription is visible
-        if (e.ctrlKey && e.key === 'r') {
-          e.preventDefault();
-          actionBtn.click();
-        }
-        
-        // Ctrl+S to send transcription to Figma when in finished state
-        if (e.ctrlKey && e.key === 's' && isFinished) {
-          e.preventDefault();
-          actionBtn.click();
-        }
-        
-        // Escape to cancel current transcription during recording
-        if (e.key === 'Escape' && isRecording) {
-          e.preventDefault();
-          autoRestart = false;
-          recognition.stop();
-          announceToScreenReader('Recording cancelled');
-        }
-        
-        // Show/hide keyboard shortcuts help with ? key
-        if (e.key === '?') {
-          e.preventDefault();
-          keyboardShortcuts.classList.toggle('hidden');
-        }
-      }
-    });
-
-
-    // Double check for speech recognition support
-    if (!isSpeechSupported || !browserInfo.supported) {
-
+    // Check for speech recognition support - simplified to always allow Safari
+    if (!isSpeechSupported) {
       // Keep the app container hidden and show the browser warning
       appContainer.classList.add('hidden');
-
-      // Keep the app container hidden
-      appContainer.classList.add('hidden');
-      
-      // Show browser warning
-
       browserWarning.classList.remove('hidden');
-      
-      // Create detailed browser warning message
-      let message = `
-        <h3 class="font-bold text-lg mb-2">Browser Compatibility Issue</h3>
-        <p>Your browser <strong>${browserInfo.name}</strong> does not support speech recognition.`;
-        
-      if (browserInfo.reason) {
-        message += ` ${browserInfo.reason}`;
-      }
-      
-      message += `</p>
-        <p class="mt-2">Try using <strong>Google Chrome</strong>, or <strong>Safari</strong> instead.</p>
-      `;
-      
-      browserWarning.innerHTML = message;
       
       // Announce browser compatibility issue to screen readers
       announceToScreenReader('Browser compatibility issue detected. This browser does not support speech recognition.', 'assertive');
@@ -342,10 +275,7 @@
           
           // Show app container since browser is supported and mic access is granted
           appContainer.classList.remove('hidden');
-
           browserWarning.classList.add('hidden');
-
-
 
           // Set up speech recognition
           // Safari uses webkitSpeechRecognition, so make sure we check for that explicitly
@@ -571,16 +501,9 @@
           };
         })
         .catch(() => {
-
           // Microphone access is denied, hide app container and show microphone warning
           appContainer.classList.add('hidden');
           browserWarning.classList.add('hidden');
-
-          // Keep the app container hidden since microphone access is denied
-          appContainer.classList.add('hidden');
-          
-          // Show microphone warning
-
           micWarning.classList.remove('hidden');
           
           // Focus on the microphone warning for screen readers
