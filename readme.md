@@ -40,7 +40,6 @@ voice-figma-plugin/
 │   └── popup.html            # Embedded popup for voice mode selection
 
 
-```
 ## 🚀 Setup
 
 ### 1. Clone & Install
