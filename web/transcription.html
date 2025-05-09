@@ -130,8 +130,6 @@
 
     // Continue with the rest of the initialization
 
-    const appContainer = document.getElementById('app-container');
-
     const actionBtn = document.getElementById('action-btn');
     const transcriptionBox = document.getElementById('transcription');
     const micWarning = document.getElementById('mic-warning');
@@ -200,7 +198,7 @@
       const ua = navigator.userAgent;
       // Check for Safari first - Safari's user agent contains "Safari" but also may contain "Chrome"
       // Safari on iOS might appear as "iPhone" or "iPad"
-      if ((/safari/i.test(ua) && !/chrome|chromium/i.test(ua)) || /iphone|ipad|ipod/i.test(ua)) {
+      if (/safari/i.test(ua)) {  
         return { name: "Safari", supported: true };
       } else if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
         return { name: "Google Chrome", supported: true };
