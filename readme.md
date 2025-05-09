@@ -12,7 +12,7 @@ This plugin allows users to transcribe their voice directly into selected Figma 
 - No paid APIs – uses the browser's built-in `SpeechRecognition` API
 - Works on Figma Mac app & Figma browser
 - Secure and session-based transcription
-- Fully deployable with free hosting (via Railway + GitHub Pages)
+
 
 ---
 
@@ -25,7 +25,6 @@ voice-figma-plugin/
 ├── CONTRIBUTING.md           # Optional: for contributions
 ├── .gitignore                # Node + web ignores
 ├── package.json              # Server dependencies + scripts
-├── render.yaml               # For Railway/Render deployment
 │── server.js                 # Main API server
 │── package-lock.json         # (Generated) JSON session storage
 │
@@ -40,13 +39,12 @@ voice-figma-plugin/
 │   └── popup.html            # Embedded popup for voice mode selection
 
 
-## 🚀 Setup
+🚀 Setup
 
-### 1. Clone & Install
-
+1. Clone & Install
 
 git clone https://github.com/mryeshwanth/voice-figma-plugin.git
-cd figma-transcription-plugin
+cd voice-figma-plugin
 npm install
 
 2. Test Locally
@@ -55,6 +53,7 @@ node server.js
 # Server will run on http://localhost:8080
 Your browser window (opened by the plugin) should point to:
 http://localhost:8080/public/transcription.html?session=someToken
+
 
 
 🧩 Load Plugin in Figma (Desktop/Mac App)
@@ -74,15 +73,10 @@ Firefox ❌ No
 Arc ❌ No
 Internet Explorer ❌ No
 
-
 🔐 Microphone Permissions
 Make sure to allow mic access:
-
-Mac:
-System Settings → Privacy & Security → Microphone → Enable for your browser
-
-Windows:
-Settings → Privacy → Microphone → Allow access for apps and browsers
+Mac: System Settings → Privacy & Security → Microphone → Enable for your browser
+Windows: Settings → Privacy → Microphone → Allow access for apps and browsers
 
 📌 Notes
 - All transcription happens locally in the browser
@@ -96,16 +90,10 @@ Voice recognition powered by the Web Speech API.
 📃 License
 MIT
 
-# Security Policy
+Security Policy
 
-## Data Privacy
+Data Privacy: This plugin **does not collect, store, or transmit any user data, voice recordings, or personal information** to any external service. All speech recognition is done **locally in your browser** using the native Web Speech API.
 
-This plugin **does not collect, store, or transmit any user data, voice recordings, or personal information** to any external service. All speech recognition is done **locally in your browser** using the native Web Speech API.
+Network Access: The plugin connects only to the developer’s hosted instance for sending transcribed text. It does **not transmit any data derived from the Figma API** or access external APIs beyond that.
 
-## Network Access
-
-The plugin connects only to the developer’s hosted instance for sending transcribed text. It does **not transmit any data derived from the Figma API** or access external APIs beyond that.
-
-## Reporting a Vulnerability
-
-If you discover a security issue or privacy concern, please open an issue on the GitHub repository or email the maintainer directly.
+Reporting a Vulnerability: If you discover a security issue or privacy concern, please open an issue on the GitHub repository or email the maintainer directly.
