@@ -13,7 +13,6 @@ This plugin allows users to transcribe their voice directly into selected Figma 
 - Works on Figma Mac app & Figma browser
 - Secure and session-based transcription
 
-
 ---
 
 ```
@@ -53,7 +52,6 @@ node server.js
 # Server will run on http://localhost:8080
 Your browser window (opened by the plugin) should point to:
 http://localhost:8080/public/transcription.html?session=someToken
-
 
 
 🧩 Load Plugin in Figma (Desktop/Mac App)
