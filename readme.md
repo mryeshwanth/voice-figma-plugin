@@ -51,7 +51,7 @@ npm install
 node server.js
 # Server will run on http://localhost:8080
 Your browser window (opened by the plugin) should point to:
-http://localhost:8080/public/transcription.html?session=someToken
+http://localhost:8080/web/transcription.html?session=someToken
 
 
 🧩 Load Plugin in Figma (Desktop/Mac App)
