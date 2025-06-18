@@ -1,7 +1,4 @@
-<<<<<<< Updated upstream
-.DS_Store
-=======
->>>>>>> Stashed changes
 node_modules/
-data/
 .env
+data/
+*.log
