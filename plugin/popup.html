@@ -19,6 +19,9 @@
       font-size: 18px;
       color: #333;
     }
+    .text-dark {
+      color: #202020;
+    }
     
     .view {
       display: none;
@@ -170,7 +173,7 @@
   <main id="main-content">
     <!-- Step 1: Mode Selection -->
     <div id="view-mode" class="view" role="region" aria-labelledby="mode-heading">
-      <h2 id="mode-heading">How would you like to add transcription?</h2>
+      <h2 id="mode-heading" class="text-dark">How would you like to add transcription?</h2>
       <div class="button-group" role="group" aria-label="Transcription mode options">
         <button id="btn-insert-new" aria-describedby="insert-new-desc">
           Insert New Text
@@ -218,12 +221,12 @@
 
     <!-- Step 3: Open Tool -->
     <div id="view-open-tool" class="view" role="region" aria-labelledby="open-tool-heading">
-      <h2 id="open-tool-heading">Start Transcription</h2>
-      <p>This will open a new browser window with the transcription tool.</p>
-      <p>You'll need to allow microphone access in your browser.</p>
+      <h2 id="open-tool-heading" class="text-dark">Start Transcription</h2>
+      <p class="text-dark">This will open a new browser window with the transcription tool.</p>
+      <p class="text-dark">You'll need to allow microphone access in your browser.</p>
       
       <div class="button-group">
-        <button id="btn-open-tool" aria-describedby="open-tool-desc">
+        <button id="btn-open-tool" aria-describedby="open-tool-desc" >
           Open Transcription Tool
           <span class="sr-only">(keyboard shortcut: o)</span>
         </button>
@@ -239,7 +242,7 @@
 
     <!-- Step 4: Waiting View -->
     <div id="view-waiting" class="view" role="region" aria-labelledby="waiting-heading">
-      <h2 id="waiting-heading">Listening for Transcription</h2>
+      <h2 id="waiting-heading" class="text-dark">Listening for Transcription</h2>
       <div role="status" aria-live="polite" id="status-container">
         <p class="status" id="status-message">Waiting for transcription...</p>
       </div>
@@ -266,8 +269,8 @@
 
     <!-- Step 5: Success -->
     <div id="view-success" class="view" role="region" aria-labelledby="success-heading">
-      <h2 id="success-heading">Success!</h2>
-      <p>Text has been added to Figma.</p>
+      <h2 id="success-heading" class="text-dark">Success!</h2>
+      <p class="text-dark">Text has been added to Figma.</p>
       <div class="button-group">
         <button id="btn-new-transcription" aria-describedby="new-transcription-desc">
           Start New Transcription
