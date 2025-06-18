@@ -79,10 +79,7 @@
             </svg>
           </button>
         </div>
-
-
         <p class="text-sm text-amber-600 mt-2">Note: Language support varies by browser. English has the best support across all browsers.</p>
-
       </div>
     </div>
     
@@ -108,28 +105,21 @@
   <div class="sr-only absolute w-px h-px overflow-hidden" aria-hidden="true"></div>
 
   <script>
-
     // First, immediately check if speech recognition is supported
-    // This runs before any other code to ensure we don't flicker UI elements
-    // Make sure we check for SpeechRecognition and webkitSpeechRecognition (Safari uses webkit prefix)
     const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
     const browserWarning = document.getElementById('browser-warning');
     const appContainer = document.getElementById('app-container');
     
     // Default state: hide app container and show browser warning if speech not supported
     if (!isSpeechSupported) {
-      // Ensure app container stays hidden
       appContainer.classList.add('hidden');
-      // Make sure browser warning is visible
       browserWarning.classList.remove('hidden');
       browserWarning.setAttribute('role', 'alert');
     } else {
-      // Initially hide browser warning if speech is supported
       browserWarning.classList.add('hidden');
     }
 
     // Continue with the rest of the initialization
-
     const actionBtn = document.getElementById('action-btn');
     const transcriptionBox = document.getElementById('transcription');
     const micWarning = document.getElementById('mic-warning');
@@ -165,14 +155,12 @@
         totalSeconds++;
         timerEl.textContent = formatTime(totalSeconds);
         
-        // Update ARIA label for screen readers with current time
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = totalSeconds % 60;
         timerEl.setAttribute('aria-label', `Recording time: ${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`);
 
         if (totalSeconds === MAX_SECONDS - 15) {
           limitWarning.classList.remove('hidden');
-          // Announce limit warning to screen readers
           const ariaLive = document.createElement('div');
           ariaLive.setAttribute('aria-live', 'assertive');
           ariaLive.className = 'sr-only';
@@ -193,11 +181,9 @@
       timerInterval = null;
     }
 
-    // Improved browser detection with more detailed feedback
+    // Improved browser detection
     const browserInfo = (() => {
       const ua = navigator.userAgent;
-      // Check for Safari first - Safari's user agent contains "Safari" but also may contain "Chrome"
-      // Safari on iOS might appear as "iPhone" or "iPad"
       if (/safari/i.test(ua)) {  
         return { name: "Safari", supported: true };
       } else if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
@@ -223,70 +209,24 @@
       setTimeout(() => document.body.removeChild(ariaLive), 3000);
     }
 
-
-    // Enhanced keyboard shortcuts handling - only register if app is visible
-    if (isSpeechSupported && browserInfo.supported) {
-      document.addEventListener('keydown', (e) => {
-        // Only handle keyboard shortcuts if the app is visible
-        if (!appContainer.classList.contains('hidden')) {
-          // Space or Enter to toggle recording when focused on action button
-          if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === actionBtn) {
-            e.preventDefault();
-            actionBtn.click();
-          }
-          
-          // Ctrl+R to toggle recording from anywhere when transcription is visible
-          if (e.ctrlKey && e.key === 'r') {
-            e.preventDefault();
-            actionBtn.click();
-          }
-          
-          // Ctrl+S to send transcription to Figma when in finished state
-          if (e.ctrlKey && e.key === 's' && isFinished) {
-            e.preventDefault();
-            actionBtn.click();
-          }
-          
-          // Escape to cancel current transcription during recording
-          if (e.key === 'Escape' && isRecording) {
-            e.preventDefault();
-            autoRestart = false;
-            recognition.stop();
-            announceToScreenReader('Recording cancelled');
-          }
-          
-          // Show/hide keyboard shortcuts help with ? key
-          if (e.key === '?') {
-            e.preventDefault();
-            keyboardShortcuts.classList.toggle('hidden');
-          }
-        }
-      });
-    }
-
-    // Enhanced keyboard shortcuts handling
+    // Keyboard shortcuts handling
     document.addEventListener('keydown', (e) => {
-      // Only handle keyboard shortcuts if the app is visible (browser is supported)
       if (!appContainer.classList.contains('hidden')) {
-        // Space or Enter to toggle recording when focused on action button
         if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === actionBtn) {
           e.preventDefault();
           actionBtn.click();
         }
         
-        // Ctrl+R to toggle recording from anywhere when transcription is visible
         if (e.ctrlKey && e.key === 'r') {
           e.preventDefault();
           actionBtn.click();
         }
         
-        // Ctrl+S to send transcription to Figma when in finished state
         if (e.ctrlKey && e.key === 's' && isFinished) {
           e.preventDefault();
           actionBtn.click();
         }
         
-        // Escape to cancel current transcription during recording
         if (e.key === 'Escape' && isRecording) {
           e.preventDefault();
           autoRestart = false;
@@ -294,7 +234,6 @@
           announceToScreenReader('Recording cancelled');
         }
         
-        // Show/hide keyboard shortcuts help with ? key
         if (e.key === '?') {
           e.preventDefault();
           keyboardShortcuts.classList.toggle('hidden');
@@ -302,21 +241,11 @@
       }
     });
 
-
-    // Double check for speech recognition support
+    // Check speech recognition support
     if (!isSpeechSupported || !browserInfo.supported) {
-
-      // Keep the app container hidden and show the browser warning
       appContainer.classList.add('hidden');
-
-      // Keep the app container hidden
-      appContainer.classList.add('hidden');
-      
-      // Show browser warning
-
       browserWarning.classList.remove('hidden');
       
-      // Create detailed browser warning message
       let message = `
         <h3 class="font-bold text-lg mb-2">Browser Compatibility Issue</h3>
         <p>Your browser <strong>${browserInfo.name}</strong> does not support speech recognition.`;
@@ -330,25 +259,16 @@
       `;
       
       browserWarning.innerHTML = message;
-      
-      // Announce browser compatibility issue to screen readers
       announceToScreenReader('Browser compatibility issue detected. This browser does not support speech recognition.', 'assertive');
     } else {
       // Browser supports speech recognition, check for microphone access
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
-          // Hide microphone warning since we have access
           micWarning.classList.add('hidden');
-          
-          // Show app container since browser is supported and mic access is granted
           appContainer.classList.remove('hidden');
-
           browserWarning.classList.add('hidden');
 
-
-
           // Set up speech recognition
-          // Safari uses webkitSpeechRecognition, so make sure we check for that explicitly
           const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
           recognition = new SpeechRecognition();
           recognition.continuous = true;
@@ -375,7 +295,6 @@
                 }, 200);
               }
               
-              // Announce language change to screen readers
               announceToScreenReader(`Language changed to ${selectedLanguageName}`);
             }
           });
@@ -400,8 +319,6 @@
               event.results[i].isFinal ? finalTranscript += transcript + ' ' : interimTranscript += transcript;
             }
             transcriptionBox.value = finalTranscript + interimTranscript;
-            
-            // Ensure the textbox scrolls to show latest content
             transcriptionBox.scrollTop = transcriptionBox.scrollHeight;
           };
 
@@ -420,8 +337,6 @@
               actionBtn.setAttribute('aria-label', 'Send transcription to Figma');
               actionBtn.classList.remove('bg-red-600', 'hover:bg-red-700');
               actionBtn.classList.add('bg-green-600', 'hover:bg-green-700');
-              
-              // Announce recording stopped to screen readers
               announceToScreenReader('Recording stopped. Review and send to Figma.', 'assertive');
             }
           };
@@ -435,30 +350,19 @@
             actionBtn.setAttribute('aria-label', 'Start recording');
             actionBtn.classList.remove('bg-red-600', 'hover:bg-red-700', 'bg-green-600', 'hover:bg-green-700');
             actionBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            
-            // Create accessible error message
             showError(getErrorMessage(event.error));
           };
           
-          // Add language support checker
+          // Language support checker
           function checkLanguageSupport() {
             const supportMsg = document.createElement('div');
             supportMsg.className = 'bg-blue-50 text-blue-800 border border-blue-200 rounded-lg p-4 mt-4';
             supportMsg.innerHTML = '<h3 class="font-bold">Current Language Support Status</h3>';
             
-            const testRecognition = new SpeechRecognition();
             const langTest = document.createElement('ul');
             langTest.className = 'list-disc pl-5 mt-2';
             
-            // Only test a few key languages to avoid overwhelming the user
-            const languagesToTest = [
-              {code: 'en-US', name: 'English (US)'},
-              {code: languageSelect.value, name: languageSelect.options[languageSelect.selectedIndex].text}
-            ];
-            
-            // Add the currently selected language if it's not English
             if (languageSelect.value !== 'en-US') {
-              testRecognition.lang = languageSelect.value;
               langTest.innerHTML += `<li class="mb-1">Testing ${languageSelect.options[languageSelect.selectedIndex].text}...</li>`;
             } else {
               langTest.innerHTML += `<li class="mb-1">English (US) is fully supported.</li>`;
@@ -467,7 +371,6 @@
             supportMsg.appendChild(langTest);
             supportMsg.innerHTML += '<p class="mt-2 text-sm">Note: For best results with non-English languages, use Chrome or Safari browsers and ensure you have the language pack installed on your system.</p>';
             
-            // Add a close button
             const closeBtn = document.createElement('button');
             closeBtn.className = 'mt-2 bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm';
             closeBtn.textContent = 'Close';
@@ -505,14 +408,12 @@
             errorMessage.textContent = message;
             document.body.insertBefore(errorMessage, appContainer);
             
-            // Remove after 5 seconds
             setTimeout(() => {
               if (document.body.contains(errorMessage)) {
                 document.body.removeChild(errorMessage);
               }
             }, 5000);
             
-            // Announce to screen readers
             announceToScreenReader(message, 'assertive');
           }
 
@@ -540,10 +441,8 @@
                 });
 
                 if (res.ok) {
-                  // Announce to screen readers before redirecting
                   announceToScreenReader('Transcription sent successfully. Returning to Figma.', 'assertive');
                   
-                  // Short delay to allow screen readers to announce
                   setTimeout(() => {
                     window.location.href = 'figma://';
                   }, 1000);
@@ -571,26 +470,16 @@
           };
         })
         .catch(() => {
-
-          // Microphone access is denied, hide app container and show microphone warning
           appContainer.classList.add('hidden');
           browserWarning.classList.add('hidden');
-
-          // Keep the app container hidden since microphone access is denied
-          appContainer.classList.add('hidden');
-          
-          // Show microphone warning
-
           micWarning.classList.remove('hidden');
           
-          // Focus on the microphone warning for screen readers
           setTimeout(() => {
             micWarning.setAttribute('tabindex', '-1');
             micWarning.focus();
             setTimeout(() => micWarning.removeAttribute('tabindex'), 100);
           }, 100);
           
-          // Announce microphone issue to screen readers
           announceToScreenReader('Microphone access is required. Please enable your microphone.', 'assertive');
         });
     }
