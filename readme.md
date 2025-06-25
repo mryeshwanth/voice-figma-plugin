@@ -21,7 +21,7 @@ This plugin allows users to transcribe their voice directly into selected Figma 
 voice-figma-plugin/
 │
 ├── README.md                 # Overview, setup, usage
-├── CONTRIBUTING.md           # Optional: for contributions
+├── CONTRIBUTING.md           # Contribution guidelines (see below)
 ├── .gitignore                # Node + web ignores
 ├── package.json              # Server dependencies + scripts
 │── server.js                 # Main API server
@@ -84,6 +84,37 @@ Windows: Settings → Privacy → Microphone → Allow access for apps and brows
 🙌 Credits
 Made with ❤️ for the Figma community.
 Voice recognition powered by the Web Speech API.
+
+🤝 Contributing
+
+I welcome contributions! Here's the standard workflow for submitting changes:
+
+1. **Fork the repository**  
+2. **Create a new branch** for your feature or bugfix  
+   ```
+   git checkout -b feature/your-feature-name
+   ```
+3. **Make your changes** and ensure everything works as expected  
+4. **Commit with clear messages**  
+   ```
+   git commit -m "Add: [short description of your change]"
+   ```
+5. **Push to your branch**  
+   ```
+   git push origin feature/your-feature-name
+   ```
+6. **Open a Pull Request (PR)** on GitHub  
+   - Include a short description of the change
+   - Link any related issues if applicable
+
+✅ Follow any feedback or requested changes during review.
+
+🧪 Tip: Please test your updates locally using:
+```
+node server.js
+# Then visit http://localhost:8080/web/transcription.html?session=test
+```
+
 
 📃 License
 MIT
