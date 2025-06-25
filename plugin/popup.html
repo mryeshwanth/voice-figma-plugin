@@ -6,204 +6,207 @@
   <title>Voice to Text</title>
   <style>
     /* Base styles */
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      margin: 0;
-      padding: 16px;
-      line-height: 1.5;
-      color: #333;
-      background-color: #fff;
-    }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  margin: 0;
+  padding: 16px;
+  line-height: 1.5;
+  color: #333;
+  background-color: #fff;
+}
 
-    @media (prefers-color-scheme: dark) {
-      body {
-        color: #f0f0f0;
-        background-color: #1e1e1e;
-      }
+/* Dark mode styles */
+@media (prefers-color-scheme: dark) {
+  body {
+    color: #ffffff;
+    background-color: #1e1e1e;
+  }
 
-      h2, p, .text-dark {
-        color: #f0f0f0;
-      }
+  h2, p {
+    color: #ffffff;
+  }
 
-      [role="alert"] {
-        background-color: #2b2b00;
-        color: #ffec99;
-        border-left-color: #facc15;
-      }
+  [role="alert"] {
+    background-color: #2b2b00;
+    color: #ffec99;
+    border-left-color: #facc15;
+  }
 
-      [role="status"] {
-        background-color: #003244;
-        color: #ccefff;
-        border-left-color: #66ccff;
-      }
+  [role="status"] {
+    background-color: #003244;
+    color: #ccefff;
+    border-left-color: #66ccff;
+  }
 
-      .keyboard-shortcuts {
-        background-color: #333;
-        color: #ddd;
-      }
+  .keyboard-shortcuts {
+    background-color: #333 !important;
+    color: #fff !important;
+  }
 
-      kbd {
-        background-color: #444;
-        border-color: #888;
-        color: #eee;
-      }
+  kbd {
+    background-color: #444;
+    border-color: #888;
+    color: #eee;
+  }
 
-      button.secondary {
-        background-color: #666;
-        color: #fff;
-      }
-    }
-    
-    h2 {
-      margin-top: 0;
-      font-size: 18px;
-      color: #333;
-    }
-    .text-dark {
-      color: #202020;
-    }
-    
-    .view {
-      display: none;
-      padding: 8px;
-    }
-    
-    .view.active {
-      display: block;
-    }
-    
-    .button-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 16px;
-    }
-    
-    /* Enhanced accessibility styles */
-    .sr-only {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border-width: 0;
-    }
-    
-    /* Improved focus styles with better visibility */
-    *:focus-visible {
-      outline: 3px solid #4285f4;
-      outline-offset: 2px;
-      box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3);
-    }
-    
-    /* Improved contrast buttons */
-    button {
-      background-color: #0066CC; /* Improved from #18A0FB for better contrast (AA) */
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 10px 15px;
-      font-size: 14px;
-      font-weight: 500;
-      cursor: pointer;
-      width: 100%;
-      text-align: center;
-      position: relative;
-    }
-    
-    button.secondary {
-      background-color: #555; /* Improved from #ccc for better contrast */
-      color: white;
-    }
-    
-    /* Alert role styling with improved contrast */
-    [role="alert"] {
-      border-left: 4px solid #cc0000;
-      padding: 8px 12px;
-      margin: 12px 0;
-      background-color: #fff3cd;
-      color: #664d03; /* Darker for better contrast (AA) */
-      font-weight: 500;
-    }
-    
-    /* Status role styling */
-    [role="status"] {
-      padding: 8px;
-      margin: 8px 0;
-      border-left: 4px solid #0066CC;
-      background-color: #e6f7ff;
-    }
-    
-    /* Add skip-to-content link for keyboard users */
-    .skip-link {
-      position: absolute;
-      top: -40px;
-      left: 0;
-      background: #0066CC;
-      color: white;
-      padding: 8px;
-      z-index: 100;
-      transition: top 0.2s;
-    }
-    
-    .skip-link:focus {
-      top: 0;
-    }
-    
-    /* Add animation for people who prefer reduced motion */
-    @media (prefers-reduced-motion: reduce) {
-      * {
-        animation-duration: 0.001ms !important;
-        transition-duration: 0.001ms !important;
-      }
-    }
-    
-    /* Loading indicator */
-    .loading-indicator {
-      display: inline-block;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: white;
-      animation: spin 1s ease-in-out infinite;
-      margin-right: 8px;
-      vertical-align: middle;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    /* Keyboard shortcut hints */
-    kbd {
-      background-color: #f7f7f7;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
-      color: #333;
-      display: inline-block;
-      font-size: 12px;
-      line-height: 1;
-      padding: 2px 4px;
-      margin: 0 2px;
-    }
-    
-    .keyboard-shortcuts {
-      margin-top: 12px;
-      padding: 8px;
-      background-color: #f5f5f5;
-      border-radius: 4px;
-      font-size: 12px;
-    }
-    
-    .shortcut-list {
-      margin: 4px 0;
-      padding-left: 20px;
-    }
+  button.secondary {
+    background-color: #666;
+    color: #fff;
+  }
+}
+
+h2 {
+  margin-top: 0;
+  font-size: 18px;
+  color: #333;
+}
+
+@media (prefers-color-scheme: dark) {
+  h2 {
+    color: #ffffff !important;
+  }
+}
+
+.view {
+  display: none;
+  padding: 8px;
+}
+
+.view.active {
+  display: block;
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* Accessibility styles */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+*:focus-visible {
+  outline: 3px solid #4285f4;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.3);
+}
+
+/* Button styles */
+button {
+  background-color: #0066CC;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  position: relative;
+}
+
+button.secondary {
+  background-color: #555;
+  color: white;
+}
+
+/* Alert and status styling */
+[role="alert"] {
+  border-left: 4px solid #cc0000;
+  padding: 8px 12px;
+  margin: 12px 0;
+  background-color: #fff3cd;
+  color: #664d03;
+  font-weight: 500;
+}
+
+[role="status"] {
+  padding: 8px;
+  margin: 8px 0;
+  border-left: 4px solid #0066CC;
+  background-color: #e6f7ff;
+}
+
+/* Skip link */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #0066CC;
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* Loading indicator */
+.loading-indicator {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Keyboard shortcuts */
+kbd {
+  background-color: #f7f7f7;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.2);
+  color: #333;
+  display: inline-block;
+  font-size: 12px;
+  line-height: 1;
+  padding: 2px 4px;
+  margin: 0 2px;
+}
+
+.keyboard-shortcuts {
+  margin-top: 12px;
+  padding: 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.shortcut-list {
+  margin: 4px 0;
+  padding-left: 20px;
+}
+
   </style>
 </head>
 <body>
