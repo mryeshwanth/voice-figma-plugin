@@ -12,6 +12,46 @@
       padding: 16px;
       line-height: 1.5;
       color: #333;
+      background-color: #fff;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        color: #f0f0f0;
+        background-color: #1e1e1e;
+      }
+
+      h2, p, .text-dark {
+        color: #f0f0f0;
+      }
+
+      [role="alert"] {
+        background-color: #2b2b00;
+        color: #ffec99;
+        border-left-color: #facc15;
+      }
+
+      [role="status"] {
+        background-color: #003244;
+        color: #ccefff;
+        border-left-color: #66ccff;
+      }
+
+      .keyboard-shortcuts {
+        background-color: #333;
+        color: #ddd;
+      }
+
+      kbd {
+        background-color: #444;
+        border-color: #888;
+        color: #eee;
+      }
+
+      button.secondary {
+        background-color: #666;
+        color: #fff;
+      }
     }
     
     h2 {
