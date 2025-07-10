@@ -111,6 +111,6 @@ setInterval(() => {
 // Start server
 app.listen(PORT, () => {
   console.log(`✅ Server is running on: http://localhost:${PORT}`);
-  console.log(`🌍 Live App URL: https://voice-figma-plugin-production-e2dc.up.railway.app`);
+  console.log(`🌍 Live App URL: https://voice-figma-plugin.onrender.com`);
 });
 
