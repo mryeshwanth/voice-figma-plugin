@@ -3,7 +3,7 @@
 
 // Global variables
 let sessionToken = null;
-let serverUrl = 'https://voice-figma-plugin-production.up.railway.app';
+let serverUrl = 'https://voice-figma-plugin.onrender.com';
 let pollInterval = null;
 let textInsertMode = 'new'; // 'new' or 'existing'
 let selectedTextNode = null;
