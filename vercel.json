@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": "dist",
   "routes": [
     { "src": "/web/(.*)", "dest": "/web/$1" },
     { "src": "/api/save-transcription", "dest": "/api/save-transcription.js" },
