@@ -9,7 +9,7 @@
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": [
-      "https://voice-figma-plugin.onrender.com"
+      "https://your-project.vercel.app"
     ]
   },
   "menu": [

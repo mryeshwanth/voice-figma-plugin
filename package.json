@@ -2,10 +2,7 @@
   "name": "figma-voice-to-text",
   "version": "1.0.0",
   "description": "A Figma plugin that converts voice to text using browser speech recognition",
-  "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "nodemon server.js",
     "build": "mkdir -p dist && cp -r plugin/* dist/",
     "test": "echo \"No tests specified\" && exit 0"
   },
@@ -20,9 +17,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "body-parser": "^1.20.2",
-    "cors": "^2.8.5",
-    "express": "^4.18.2"
+    "@vercel/kv": "^0.2.3",
+    "cors": "^2.8.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
