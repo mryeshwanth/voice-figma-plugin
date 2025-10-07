@@ -111,7 +111,7 @@ I welcome contributions! Here's the standard workflow for submitting changes:
 
 🧪 Tip: Please test your updates locally using:
 ```
-node server.js
+node server.js 
 # Then visit http://localhost:8080/web/transcription.html?session=test
 ```
 

@@ -3,7 +3,7 @@
 
 // Global variables
 let sessionToken = null;
-let serverUrl = 'https://your-project.vercel.app'; // IMPORTANT: Replace with your actual Vercel deployment URL
+let serverUrl = 'https://voice-figma-plugin.vercel.app'; // IMPORTANT: Replace with your actual Vercel deployment URL
 let pollInterval = null;
 let textInsertMode = 'new'; // 'new' or 'existing'
 let selectedTextNode = null;
