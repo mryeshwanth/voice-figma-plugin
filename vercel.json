@@ -3,6 +3,7 @@
   "outputDirectory": "public",
   "routes": [
     { "src": "/web/(.*)", "dest": "/web/$1" },
+    { "src": "/transcription.html", "dest": "/web/transcription.html" },
     { "src": "/api/save-transcription", "dest": "/api/save-transcription.js" },
     { "src": "/api/get-transcription", "dest": "/api/get-transcription.js" },
     { "src": "/api/health", "dest": "/api/health.js" },
