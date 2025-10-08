@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A Figma plugin that converts voice to text using browser speech recognition",
   "scripts": {
-    "build": "mkdir -p dist && cp -r plugin/* dist/",
+    "build": "mkdir -p public && cp -r plugin/* public/ && cp -r web public/",
     "test": "echo \"No tests specified\" && exit 0"
   },
   "keywords": [
