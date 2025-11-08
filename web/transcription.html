@@ -441,21 +441,29 @@
                 });
 
                 if (res.ok) {
+                  const result = await res.json();
+                  actionBtn.textContent = 'Sent!';
+                  actionBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                  actionBtn.classList.add('bg-gray-400');
                   announceToScreenReader('Transcription sent successfully. Returning to Figma.', 'assertive');
                   
                   setTimeout(() => {
                     window.location.href = 'figma://';
                   }, 1000);
                 } else {
-                  throw new Error('Failed to send transcription');
+                  const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
+                  throw new Error(errorData.error || `Server returned ${res.status}: ${res.statusText}`);
                 }
               } catch (err) {
-                console.error(err);
+                console.error('Error sending transcription:', err);
                 actionBtn.disabled = false;
                 actionBtn.textContent = 'Send to Figma';
                 actionBtn.setAttribute('aria-busy', 'false');
+                actionBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                actionBtn.classList.add('bg-green-600', 'hover:bg-green-700');
                 
-                showError('Error sending transcription. Please try again.');
+                const errorMessage = err.message || 'Error sending transcription. Please check your connection and try again.';
+                showError(errorMessage);
               }
             } else if (!isRecording) {
               finalTranscript = '';
