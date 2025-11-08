@@ -21,31 +21,45 @@ app.use(express.urlencoded({ extended: true }));
 let redisClient;
 const initRedis = async () => {
   try {
-    // Railway provides REDIS_URL environment variable
-    const redisUrl = process.env.REDIS_URL || process.env.REDISCLOUD_URL;
+    // Check for Redis URL from various sources (Railway, Redis Cloud, etc.)
+    const redisUrl = process.env.REDIS_URL 
+      || process.env.REDISCLOUD_URL 
+      || process.env.RAILWAY_REDIS_URL
+      || process.env.DATABASE_URL; // Some services use DATABASE_URL for Redis
     
     if (redisUrl) {
+      console.log('Connecting to Redis using provided URL...');
       redisClient = redis.createClient({
         url: redisUrl
       });
-    } else {
-      // Fallback to local Redis for development
+    } else if (process.env.NODE_ENV === 'development' || !process.env.PORT) {
+      // Only try localhost in development mode
+      console.log('Development mode: Attempting to connect to local Redis...');
       redisClient = redis.createClient({
         socket: {
-          host: process.env.REDIS_HOST || 'localhost',
+          host: process.env.REDIS_HOST || '127.0.0.1', // Use IPv4 explicitly
           port: process.env.REDIS_PORT || 6379
         },
         password: process.env.REDIS_PASSWORD
       });
+    } else {
+      // Production mode but no Redis URL - don't attempt connection
+      console.warn('WARNING: No Redis URL found. Redis features will be unavailable.');
+      console.warn('Please add a Redis service in Railway or set REDIS_URL environment variable.');
+      return; // Don't create a client
     }
 
-    redisClient.on('error', (err) => console.error('Redis Client Error', err));
-    redisClient.on('connect', () => console.log('Redis Client Connected'));
-    
-    await redisClient.connect();
+    if (redisClient) {
+      redisClient.on('error', (err) => console.error('Redis Client Error:', err.message));
+      redisClient.on('connect', () => console.log('Redis Client Connected'));
+      
+      await redisClient.connect();
+      console.log('Redis connection established successfully');
+    }
   } catch (error) {
-    console.error('Failed to connect to Redis:', error);
-    // Continue without Redis - API will return errors but server won't crash
+    console.error('Failed to connect to Redis:', error.message);
+    console.error('Server will continue but transcription features will not work until Redis is connected.');
+    redisClient = null; // Ensure it's null on error
   }
 };
 
@@ -76,11 +90,21 @@ app.get('/transcription.html', (req, res) => {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  const redisStatus = redisClient ? (redisClient.isOpen ? 'connected' : 'disconnected') : 'not_configured';
+  res.status(200).json({ 
+    status: 'ok',
+    redis: redisStatus,
+    timestamp: new Date().toISOString()
+  });
 });
 
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  const redisStatus = redisClient ? (redisClient.isOpen ? 'connected' : 'disconnected') : 'not_configured';
+  res.status(200).json({ 
+    status: 'ok',
+    redis: redisStatus,
+    timestamp: new Date().toISOString()
+  });
 });
 
 // API: Save transcription
