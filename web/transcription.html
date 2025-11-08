@@ -105,146 +105,36 @@
   <div class="sr-only absolute w-px h-px overflow-hidden" aria-hidden="true"></div>
 
   <script>
-    // First, immediately check if speech recognition is supported
-    const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    // Check browser compatibility FIRST before checking API availability
     const browserWarning = document.getElementById('browser-warning');
     const appContainer = document.getElementById('app-container');
     
-    // Default state: hide app container and show browser warning if speech not supported
-    if (!isSpeechSupported) {
-      appContainer.classList.add('hidden');
-      browserWarning.classList.remove('hidden');
-      browserWarning.setAttribute('role', 'alert');
-    } else {
-      browserWarning.classList.add('hidden');
-    }
-
-    // Continue with the rest of the initialization
-    const actionBtn = document.getElementById('action-btn');
-    const transcriptionBox = document.getElementById('transcription');
-    const micWarning = document.getElementById('mic-warning');
-    const indicator = document.getElementById('recording-indicator');
-    const limitWarning = document.getElementById('limit-warning');
-    const timerEl = document.getElementById('timer');
-    const languageSelect = document.getElementById('language-select');
-    const keyboardShortcuts = document.getElementById('keyboard-shortcuts');
-    const session = new URLSearchParams(window.location.search).get('session');
-
-    let recognition;
-    let isRecording = false;
-    let isFinished = false;
-    let finalTranscript = '', interimTranscript = '';
-    let autoRestart = true;
-    let timerInterval = null;
-    let totalSeconds = 0;
-    const MAX_SECONDS = 60;
-
-    function formatTime(secs) {
-      const m = Math.floor(secs / 60);
-      const s = secs % 60;
-      return `${m}:${s.toString().padStart(2, '0')}`;
-    }
-
-    function startTimer() {
-      totalSeconds = 0;
-      limitWarning.classList.add('hidden');
-      timerEl.textContent = '0:00';
-      timerEl.setAttribute('aria-label', 'Recording time: 0 minutes 0 seconds');
-
-      timerInterval = setInterval(() => {
-        totalSeconds++;
-        timerEl.textContent = formatTime(totalSeconds);
-        
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        timerEl.setAttribute('aria-label', `Recording time: ${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`);
-
-        if (totalSeconds === MAX_SECONDS - 15) {
-          limitWarning.classList.remove('hidden');
-          const ariaLive = document.createElement('div');
-          ariaLive.setAttribute('aria-live', 'assertive');
-          ariaLive.className = 'sr-only';
-          ariaLive.textContent = 'Warning: 15 seconds remaining before recording auto-stops';
-          document.body.appendChild(ariaLive);
-          setTimeout(() => document.body.removeChild(ariaLive), 3000);
-        }
-
-        if (totalSeconds >= MAX_SECONDS) {
-          autoRestart = false;
-          recognition.stop();
-        }
-      }, 1000);
-    }
-
-    function stopTimer() {
-      clearInterval(timerInterval);
-      timerInterval = null;
-    }
-
-    // Improved browser detection
+    // Improved browser detection - check this FIRST
     const browserInfo = (() => {
       const ua = navigator.userAgent;
-      if (/safari/i.test(ua)) {  
+      if (/edg/i.test(ua)) {
+        return { name: "Microsoft Edge", supported: false, reason: "Microsoft Edge does not support speech recognition. Please use Google Chrome or Safari instead." };
+      } else if (/firefox/i.test(ua)) {
+        return { name: "Firefox", supported: false, reason: "Firefox does not support the Web Speech API." };
+      } else if (/safari/i.test(ua) && !/chrome/i.test(ua)) {
         return { name: "Safari", supported: true };
       } else if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
         return { name: "Google Chrome", supported: true };
-      } else if (/edg/i.test(ua)) {
-        return { name: "Microsoft Edge", supported: false, reason: "Microsoft Edge does not support speech recognition." };
-      } else if (/firefox/i.test(ua)) {
-        return { name: "Firefox", supported: false, reason: "Firefox requires special permissions for speech recognition." };
       } else if (/opr/i.test(ua) || /opera/i.test(ua)) {
         return { name: "Opera", supported: true };
       } else {
-        return { name: "Unknown", supported: false, reason: "This browser is not supported for speech recognition." };
+        return { name: "Unknown", supported: false, reason: "This browser may not support speech recognition." };
       }
     })();
 
-    // Helper function for screen reader announcements
-    function announceToScreenReader(message, priority = 'polite') {
-      const ariaLive = document.createElement('div');
-      ariaLive.setAttribute('aria-live', priority);
-      ariaLive.className = 'sr-only';
-      ariaLive.textContent = message;
-      document.body.appendChild(ariaLive);
-      setTimeout(() => document.body.removeChild(ariaLive), 3000);
-    }
-
-    // Keyboard shortcuts handling
-    document.addEventListener('keydown', (e) => {
-      if (!appContainer.classList.contains('hidden')) {
-        if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === actionBtn) {
-          e.preventDefault();
-          actionBtn.click();
-        }
-        
-        if (e.ctrlKey && e.key === 'r') {
-          e.preventDefault();
-          actionBtn.click();
-        }
-        
-        if (e.ctrlKey && e.key === 's' && isFinished) {
-          e.preventDefault();
-          actionBtn.click();
-        }
-        
-        if (e.key === 'Escape' && isRecording) {
-          e.preventDefault();
-          autoRestart = false;
-          recognition.stop();
-          announceToScreenReader('Recording cancelled');
-        }
-        
-        if (e.key === '?') {
-          e.preventDefault();
-          keyboardShortcuts.classList.toggle('hidden');
-        }
-      }
-    });
-
-    // Check speech recognition support
-    if (!isSpeechSupported || !browserInfo.supported) {
+    // Check if speech recognition API is available
+    const isSpeechSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+    
+    // Block unsupported browsers immediately
+    if (!browserInfo.supported || !isSpeechSupported) {
       appContainer.classList.add('hidden');
       browserWarning.classList.remove('hidden');
+      browserWarning.setAttribute('role', 'alert');
       
       let message = `
         <h3 class="font-bold text-lg mb-2">Browser Compatibility Issue</h3>
@@ -255,12 +145,121 @@
       }
       
       message += `</p>
-        <p class="mt-2">Try using <strong>Google Chrome</strong>, or <strong>Safari</strong> instead.</p>
+        <p class="mt-2"><strong>Recommended browsers:</strong></p>
+        <ul class="list-disc pl-5 mt-2">
+          <li>Google Chrome (best support)</li>
+          <li>Safari (good support)</li>
+        </ul>
       `;
       
       browserWarning.innerHTML = message;
       announceToScreenReader('Browser compatibility issue detected. This browser does not support speech recognition.', 'assertive');
+      // Stop execution for unsupported browsers
     } else {
+      // Continue with the rest of the initialization for supported browsers
+      const actionBtn = document.getElementById('action-btn');
+      const transcriptionBox = document.getElementById('transcription');
+      const micWarning = document.getElementById('mic-warning');
+      const indicator = document.getElementById('recording-indicator');
+      const limitWarning = document.getElementById('limit-warning');
+      const timerEl = document.getElementById('timer');
+      const languageSelect = document.getElementById('language-select');
+      const keyboardShortcuts = document.getElementById('keyboard-shortcuts');
+      const session = new URLSearchParams(window.location.search).get('session');
+
+      let recognition;
+      let isRecording = false;
+      let isFinished = false;
+      let finalTranscript = '', interimTranscript = '';
+      let autoRestart = true;
+      let timerInterval = null;
+      let totalSeconds = 0;
+      const MAX_SECONDS = 60;
+
+      function formatTime(secs) {
+        const m = Math.floor(secs / 60);
+        const s = secs % 60;
+        return `${m}:${s.toString().padStart(2, '0')}`;
+      }
+
+      function startTimer() {
+        totalSeconds = 0;
+        limitWarning.classList.add('hidden');
+        timerEl.textContent = '0:00';
+        timerEl.setAttribute('aria-label', 'Recording time: 0 minutes 0 seconds');
+
+        timerInterval = setInterval(() => {
+          totalSeconds++;
+          timerEl.textContent = formatTime(totalSeconds);
+          
+          const minutes = Math.floor(totalSeconds / 60);
+          const seconds = totalSeconds % 60;
+          timerEl.setAttribute('aria-label', `Recording time: ${minutes} minute${minutes !== 1 ? 's' : ''} ${seconds} second${seconds !== 1 ? 's' : ''}`);
+
+          if (totalSeconds === MAX_SECONDS - 15) {
+            limitWarning.classList.remove('hidden');
+            const ariaLive = document.createElement('div');
+            ariaLive.setAttribute('aria-live', 'assertive');
+            ariaLive.className = 'sr-only';
+            ariaLive.textContent = 'Warning: 15 seconds remaining before recording auto-stops';
+            document.body.appendChild(ariaLive);
+            setTimeout(() => document.body.removeChild(ariaLive), 3000);
+          }
+
+          if (totalSeconds >= MAX_SECONDS) {
+            autoRestart = false;
+            recognition.stop();
+          }
+        }, 1000);
+      }
+
+      function stopTimer() {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+
+      // Helper function for screen reader announcements
+      function announceToScreenReader(message, priority = 'polite') {
+        const ariaLive = document.createElement('div');
+        ariaLive.setAttribute('aria-live', priority);
+        ariaLive.className = 'sr-only';
+        ariaLive.textContent = message;
+        document.body.appendChild(ariaLive);
+        setTimeout(() => document.body.removeChild(ariaLive), 3000);
+      }
+
+      // Keyboard shortcuts handling
+      document.addEventListener('keydown', (e) => {
+        if (!appContainer.classList.contains('hidden')) {
+          if ((e.key === ' ' || e.key === 'Enter') && document.activeElement === actionBtn) {
+            e.preventDefault();
+            actionBtn.click();
+          }
+          
+          if (e.ctrlKey && e.key === 'r') {
+            e.preventDefault();
+            actionBtn.click();
+          }
+          
+          if (e.ctrlKey && e.key === 's' && isFinished) {
+            e.preventDefault();
+            actionBtn.click();
+          }
+          
+          if (e.key === 'Escape' && isRecording) {
+            e.preventDefault();
+            autoRestart = false;
+            recognition.stop();
+            announceToScreenReader('Recording cancelled');
+          }
+          
+          if (e.key === '?') {
+            e.preventDefault();
+            keyboardShortcuts.classList.toggle('hidden');
+          }
+        }
+      });
+
       // Browser supports speech recognition, check for microphone access
       navigator.mediaDevices.getUserMedia({ audio: true })
         .then(stream => {
@@ -350,7 +349,27 @@
             actionBtn.setAttribute('aria-label', 'Start recording');
             actionBtn.classList.remove('bg-red-600', 'hover:bg-red-700', 'bg-green-600', 'hover:bg-green-700');
             actionBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
-            showError(getErrorMessage(event.error));
+            
+            // Check if this is a network error in Edge (common compatibility issue)
+            const ua = navigator.userAgent;
+            if ((event.error === 'network' || event.error === 'no-speech') && /edg/i.test(ua)) {
+              // Show browser compatibility message for Edge
+              appContainer.classList.add('hidden');
+              browserWarning.classList.remove('hidden');
+              browserWarning.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">Browser Compatibility Issue</h3>
+                <p>Your browser <strong>Microsoft Edge</strong> does not support speech recognition.</p>
+                <p class="mt-2">The network error you're experiencing is due to Edge's lack of support for the Web Speech API.</p>
+                <p class="mt-2"><strong>Please use one of these browsers instead:</strong></p>
+                <ul class="list-disc pl-5 mt-2">
+                  <li>Google Chrome (recommended)</li>
+                  <li>Safari</li>
+                </ul>
+              `;
+              announceToScreenReader('Browser compatibility issue: Microsoft Edge does not support speech recognition. Please use Chrome or Safari.', 'assertive');
+            } else {
+              showError(getErrorMessage(event.error));
+            }
           };
           
           // Language support checker
