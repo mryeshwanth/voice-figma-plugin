@@ -112,18 +112,25 @@
     // Improved browser detection - check this FIRST
     const browserInfo = (() => {
       const ua = navigator.userAgent;
-      if (/edg/i.test(ua)) {
+      // Check for unsupported browsers first
+      if (/msie|trident/i.test(ua)) {
+        return { name: "Internet Explorer", supported: false, reason: "Internet Explorer does not support speech recognition. Please use Google Chrome or Safari instead." };
+      } else if (/edg/i.test(ua)) {
         return { name: "Microsoft Edge", supported: false, reason: "Microsoft Edge does not support speech recognition. Please use Google Chrome or Safari instead." };
       } else if (/firefox/i.test(ua)) {
-        return { name: "Firefox", supported: false, reason: "Firefox does not support the Web Speech API." };
+        return { name: "Firefox", supported: false, reason: "Firefox does not support the Web Speech API. Please use Google Chrome or Safari instead." };
+      } else if (/brave/i.test(ua)) {
+        return { name: "Brave", supported: false, reason: "Brave browser has limited support for speech recognition. Please use Google Chrome or Safari instead." };
+      } else if (/arc/i.test(ua)) {
+        return { name: "Arc", supported: false, reason: "Arc browser has limited support for speech recognition. Please use Google Chrome or Safari instead." };
       } else if (/safari/i.test(ua) && !/chrome/i.test(ua)) {
         return { name: "Safari", supported: true };
-      } else if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua)) {
+      } else if (/chrome/i.test(ua) && !/edg/i.test(ua) && !/opr/i.test(ua) && !/brave/i.test(ua) && !/arc/i.test(ua)) {
         return { name: "Google Chrome", supported: true };
       } else if (/opr/i.test(ua) || /opera/i.test(ua)) {
         return { name: "Opera", supported: true };
       } else {
-        return { name: "Unknown", supported: false, reason: "This browser may not support speech recognition." };
+        return { name: "Unknown", supported: false, reason: "This browser may not support speech recognition. Please use Google Chrome or Safari instead." };
       }
     })();
 
