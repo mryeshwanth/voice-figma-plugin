@@ -10,7 +10,7 @@
   <!-- Page header with clear instructions -->
   <header class="mb-5">
     <h1 class="text-2xl font-bold text-gray-800">Voice to Text</h1>
-    <p class="text-gray-600">Click "Record" to begin speaking. Your text will appear below.</p>
+    <p id="header-instruction" class="text-gray-600">Click "Record" to begin speaking. Your text will appear below.</p>
   </header>
 
   <!-- Browser compatibility warning - will show if speech recognition not supported -->
@@ -142,6 +142,12 @@
       appContainer.classList.add('hidden');
       browserWarning.classList.remove('hidden');
       browserWarning.setAttribute('role', 'alert');
+      
+      // Hide the header instruction when browser is not supported
+      const headerInstruction = document.getElementById('header-instruction');
+      if (headerInstruction) {
+        headerInstruction.classList.add('hidden');
+      }
       
       let message = `
         <h3 class="font-bold text-lg mb-2">Browser Compatibility Issue</h3>
