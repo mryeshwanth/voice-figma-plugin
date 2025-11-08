@@ -9,6 +9,7 @@
   "documentAccess": "dynamic-page",
   "networkAccess": {
     "allowedDomains": [
+      "https://voice-figma-plugin-production.up.railway.app",
       "https://*.up.railway.app",
       "https://*.railway.app"
     ]

@@ -5,7 +5,7 @@
 let sessionToken = null;
 // Railway URL - Update this with your Railway deployment URL
 // The URL can also be set via Figma client storage (see init function)
-let serverUrl = 'https://your-railway-app.up.railway.app'; // IMPORTANT: Replace with your actual Railway deployment URL
+let serverUrl = 'https://voice-figma-plugin-production.up.railway.app';
 let pollInterval = null;
 let textInsertMode = 'new'; // 'new' or 'existing'
 let selectedTextNode = null;
