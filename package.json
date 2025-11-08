@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "A Figma plugin that converts voice to text using browser speech recognition",
   "scripts": {
+    "start": "node server.js",
     "build": "echo 'Build complete'",
     "test": "echo \"No tests specified\" && exit 0"
   },
@@ -17,8 +18,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@vercel/kv": "^1.0.1",
-    "cors": "^2.8.5"
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "redis": "^4.6.10"
   },
   "engines": {
     "node": ">=18.0.0"
